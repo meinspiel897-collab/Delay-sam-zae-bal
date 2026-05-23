@@ -34,10 +34,10 @@
             pointer-events: none;
         }
 
-        /* Контейнер радара зафиксирован */
+        /* Главный контейнер радара */
         .radar-container {
             position: absolute;
-            top: 44%; 
+            top: 45%; 
             left: 50%;
             transform: translate(-50%, -50%);
             width: 60vw;
@@ -57,7 +57,7 @@
             overflow: visible;
         }
 
-        /* --- ВОЛНОВЫЕ КРУГИ БЭКГРАУНДА --- */
+        /* --- ВОЛНОВЫЕ КРУГИ --- */
         .circle-layer-1 {
             width: 100%; height: 100%;
             fill: #006DF9; 
@@ -110,31 +110,28 @@
             stroke-width: 1;
         }
 
-        /* --- ТОЧНЫЙ ЛУЧ ИЗ ЦЕНТРА (Вращение SVG-ноды) --- */
-        .radar-sweep-svg {
+        /* --- ТОЧКИ НА РАДАРЕ --- */
+        .radar-dot {
+            fill: #d7ebff;
+            stroke: #006df9;
+            stroke-width: 0.5;
+            opacity: 0;
+            transition: opacity 0.25s ease-out;
+        }
+        .radar-dot.visible {
+            opacity: 1;
+        }
+
+        /* --- ИДЕАЛЬНОЕ ВРАЩЕНИЕ ЛУЧА ИЗ НАСТОЯЩЕГО ЦЕНТРА СИСТЕМЫ КООРДИНАТ --- */
+        .sweep-layer {
             width: 100%;
             height: 100%;
             z-index: 4;
             pointer-events: none;
+        }
+        .sweep-rotating-group {
+            transform-origin: 100px 100px;
             animation: sweepRotate 4s linear infinite;
-        }
-
-        /* --- МАЛЕНЬКИЕ ЯРКИЕ ТОЧКИ --- */
-        .radar-dots-layer {
-            width: 100%;
-            height: 100%;
-            z-index: 5;
-            pointer-events: none;
-        }
-        
-        .radar-dot {
-            fill: #ffffff;
-            opacity: 0;
-            transition: opacity 0.4s ease-in-out;
-        }
-        
-        .radar-dot.visible {
-            opacity: 0.95;
         }
 
         /* АНИМАЦИИ */
@@ -153,8 +150,8 @@
             100% { transform: translate(-50%, -50%) rotate(0deg); }
         }
         @keyframes sweepRotate {
-            0% { transform: translate(-50%, -50%) rotate(0deg); }
-            100% { transform: translate(-50%, -50%) rotate(360deg); }
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
     </style>
 </head>
@@ -175,23 +172,22 @@
         </div>
     </header>
 
-    <!-- Главная рабочая область -->
     <main class="w-full h-full relative">
         
-        <!-- Радар (зафиксирован на месте) -->
-        <div class="radar-container">
+        <!-- Контейнер Радара -->
+        <div class="radar-container" id="radarBody">
             
-            <!-- Слой 3 -->
+            <!-- Слой 3 (Задний) -->
             <svg class="layer-absolute circle-layer-3" viewBox="0 0 200 200">
                 <path d="M 100, 2 C 140, 10 180, 25 198, 90 C 215, 155 150, 195 100, 198 C 50, 201 -5, 150 2, 90 C 10, 30 60, -5 100, 2 Z" />
             </svg>
 
-            <!-- Слой 2 -->
+            <!-- Слой 2 (Средний) -->
             <svg class="layer-absolute circle-layer-2" viewBox="0 0 200 200">
                 <path d="M 100, 5 C 135, 2 190, 30 195, 100 C 200, 170 145, 198 100, 195 C 55, 192 2, 160 5, 100 C 8, 40 65, 8 100, 5 Z" />
             </svg>
 
-            <!-- Слой 1 (Основной) -->
+            <!-- Слой 1 (Передний основной круг) -->
             <svg class="layer-absolute circle-layer-1" viewBox="0 0 200 200">
                 <path d="M 100, 5 C 150, 7 193, 50 195, 100 C 197, 150 150, 193 100, 195 C 50, 197 7, 150 5, 100 C 3, 50 50, 3 100, 5 Z" />
             </svg>
@@ -208,36 +204,51 @@
                 <path d="M 12, 100 Q 70, 100.5 100, 99.5 T 188, 100" />
             </svg>
 
-            <!-- СЛОЙ ДЛЯ СЛУЧАЙНЫХ ТОЧЕК -->
-            <svg class="layer-absolute radar-dots-layer" viewBox="0 0 200 200" id="dotsLayer"></svg>
+            <!-- ИНТЕРАКТИВНЫЙ СЛОЙ ТОЧЕК (Управляется скриптом) -->
+            <svg class="layer-absolute" viewBox="0 0 200 200" style="width:100%; height:100%; z-index:3.5; pointer-events:none;">
+                <!-- Четверть 1 -->
+                <circle id="dot-1-1" class="radar-dot" cx="135" cy="55" r="2.2" />
+                <circle id="dot-1-2" class="radar-dot" cx="155" cy="75" r="1.8" />
+                <!-- Четверть 2 -->
+                <circle id="dot-2-1" class="radar-dot" cx="145" cy="140" r="2" />
+                <circle id="dot-2-2" class="radar-dot" cx="120" cy="155" r="2.5" />
+                <circle id="dot-2-3" class="radar-dot" cx="160" cy="115" r="1.6" />
+                <!-- Четверть 3 -->
+                <circle id="dot-3-1" class="radar-dot" cx="55" cy="135" r="2.1" />
+                <circle id="dot-3-2" class="radar-dot" cx="70" cy="150" r="1.7" />
+                <!-- Четверть 4 -->
+                <circle id="dot-4-1" class="radar-dot" cx="45" cy="70" r="2.3" />
+                <circle id="dot-4-2" class="radar-dot" cx="65" cy="48" r="1.9" />
+            </svg>
 
-            <!-- ВРАЩАЮЩИЙСЯ ЛУЧ (Маскирован по форме 1-го круга, вращается идеально из центра 100,100) -->
-            <svg class="layer-absolute radar-sweep-svg" viewBox="0 0 200 200">
+            <!-- ЧИСТЫЙ SVG ЛУЧ (Вращение строго из точки 100,100 по вектору маски) -->
+            <svg class="layer-absolute sweep-layer" viewBox="0 0 200 200">
                 <defs>
-                    <clipPath id="radarMask">
+                    <clipPath id="radarShapeClip">
                         <path d="M 100, 5 C 150, 7 193, 50 195, 100 C 197, 150 150, 193 100, 195 C 50, 197 7, 150 5, 100 C 3, 50 50, 3 100, 5 Z" />
                     </clipPath>
                 </defs>
-                <g clip-path="url(#radarMask)">
-                    <foreignObject x="0" y="0" width="200" height="200">
-                        <!-- Чистый CSS конический шлейф из центра -->
-                        <div xmlns="http://www.w3.org/1999/xhtml" style="width:100%; height:100%; border-radius:50%; background: conic-gradient(from 0deg, transparent 40%, rgba(0, 109, 249, 0.15) 75%, rgba(215, 235, 255, 0.38) 99%, rgba(215, 235, 255, 0.75) 100%);"></div>
-                    </foreignObject>
+                
+                <g clip-path="url(#radarShapeClip)">
+                    <g class="sweep-rotating-group">
+                        <foreignObject x="-50" y="-50" width="300" height="300">
+                            <div xmlns="http://www.w3.org/1999/xhtml" style="width:100%; height:100%; background: conic-gradient(from 100px 100px, transparent 40%, rgba(0, 109, 249, 0.15) 75%, rgba(215, 235, 255, 0.4) 99%, rgba(215, 235, 255, 0.75) 100%); border-radius:50%;"></div>
+                        </foreignObject>
+                    </g>
                 </g>
             </svg>
 
         </div>
 
-        <!-- Нижняя плашка (Полностью круглые углы, без аутлайна, отступы по 15px) -->
-        <div class="absolute bottom-[15px] left-[15px] right-[15px] bg-[#1C1C1E] rounded-full p-[15px] pb-[15px] pt-[22px] flex flex-col z-20 shadow-xl">
-            <p class="text-[13.5px] leading-relaxed font-medium text-white/85 text-center px-8 mb-4">
+        <!-- Нижняя темная плашка (Без лишних бордеров и контуров, мягкие углы) -->
+        <div class="absolute bottom-[15px] left-[15px] right-[15px] bg-[#1C1C1E] rounded-[24px] border-none p-[15px] pt-[20px] flex flex-col z-20 shadow-2xl">
+            <p class="text-[14px] leading-relaxed font-medium text-white/85 text-center px-1 mb-5">
                 Самое время поймать чей-нибудь кораблик! Сейчас в океане 
-                <!-- Полностью круглый и чуть более яркий бейдж цифр -->
-                <span class="inline-flex items-center justify-center bg-white/25 text-white px-[5px] py-[1.5px] mx-[2px] rounded-full font-semibold tracking-wide" style="transform: translateY(-1px);">999</span> 
+                <span class="inline-flex items-center justify-center bg-white/20 text-white/95 px-[6px] py-[1.5px] mx-[2px] rounded-full font-semibold text-[13px] tracking-wide" style="transform: translateY(-1px);">999</span> 
                 дрейфующих бортов, какой достанешь ты?
             </p>
             
-            <!-- Кнопка Telegram (Внутри плашки, 15px от низа обеспечено падингом) -->
+            <!-- Кнопка Telegram -->
             <button class="w-full py-3.5 px-6 rounded-full text-[15px] font-semibold tracking-wide transition-transform active:scale-[0.98] bg-[#006DF9] text-white bg-[--tg-theme-button-color] text-[--tg-theme-button-text-color]">
                 Поймать что-нибудь
             </button>
@@ -248,56 +259,60 @@
     <script>
         const tg = window.Telegram.WebApp;
         tg.ready();
+        
         tg.expand();
-        if (tg.requestFullscreen) tg.requestFullscreen();
+        if (tg.requestFullscreen) {
+            tg.requestFullscreen();
+        }
+        
         tg.setHeaderColor('#000000');
         tg.setBackgroundColor('#000000');
 
-        // Логика плавного появления маленьких ярких точек по четвертям радара
-        const dotsLayer = document.getElementById('dotsLayer');
-        
-        // Диапазоны координат для 4-х разных четвертей (внутри первого круга)
-        const quarters = [
-            { minX: 110, maxX: 160, minY: 40,  maxY: 90  }, // Верхняя правая
-            { minX: 110, maxX: 160, minY: 110, maxY: 160 }, // Нижняя правая
-            { minX: 40,  maxX: 90,  minY: 110, maxY: 160 }, // Нижняя левая
-            { minX: 40,  maxX: 90,  minY: 40,  maxY: 90  }  // Верхняя левая
-        ];
+        // Логика последовательного появления точек по ходу движения луча
+        const dots = {
+            1: [document.getElementById('dot-1-1'), document.getElementById('dot-1-2')],
+            2: [document.getElementById('dot-2-1'), document.getElementById('dot-2-2'), document.getElementById('dot-2-3')],
+            3: [document.getElementById('dot-3-1'), document.getElementById('dot-3-2')],
+            4: [document.getElementById('dot-4-1'), document.getElementById('dot-4-2')]
+        };
 
-        function spawnDots() {
-            // Очищаем старые угасшие точки
-            dotsLayer.innerHTML = '';
+        let currentAngle = 0;
+        let lastQuadrant = 0;
+
+        function updateRadarScan() {
+            // Анимация идет 4 секунды (360 градусов) -> 90 градусов в секунду
+            currentAngle = (currentAngle + 1.5) % 360; 
             
-            // Случайное количество точек от 1 до 3 на весь круг
-            const dotsCount = Math.floor(Math.random() * 3) + 1;
-            
-            // Перемешиваем четверти, чтобы точки всегда падали в разные сектора
-            const shuffledQuarters = [...quarters].sort(() => 0.5 - Math.random());
-            
-            for (let i = 0; i < dotsCount; i++) {
-                const q = shuffledQuarters[i];
-                const x = Math.floor(Math.random() * (q.maxX - q.minX + 1)) + q.minX;
-                const y = Math.floor(Math.random() * (q.maxY - q.minY + 1)) + q.minY;
-                
-                // Создаем маленькую яркую точку
-                const dot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-                dot.setAttribute("cx", x);
-                dot.setAttribute("cy", y);
-                dot.setAttribute("r", "1.5"); // Маленький радиус (диаметр 3px)
-                dot.setAttribute("class", "radar-dot");
-                
-                dotsLayer.appendChild(dot);
-                
-                // Плавно проявляем через микротаймаут
-                setTimeout(() => {
-                    dot.classList.add('visible');
-                }, i * 200);
+            // Определяем текущую четверть луча
+            let quadrant = 1;
+            if (currentAngle >= 0 && currentAngle < 90) quadrant = 1;
+            else if (currentAngle >= 90 && currentAngle < 180) quadrant = 2;
+            else if (currentAngle >= 180 && currentAngle < 270) quadrant = 3;
+            else if (currentAngle >= 270 && currentAngle < 360) quadrant = 4;
+
+            if (quadrant !== lastQuadrant) {
+                // Плавно зажигаем точки в текущей четверти
+                dots[quadrant].forEach(dot => {
+                    if(dot) dot.classList.add('visible');
+                });
+
+                // Вычисляем противоположную четверть для гашения
+                let oppQuadrant = quadrant - 2;
+                if (oppQuadrant <= 0) oppQuadrant += 4;
+
+                // Плавно гасим точки на противоположной стороне
+                dots[oppQuadrant].forEach(dot => {
+                    if(dot) dot.classList.remove('visible');
+                });
+
+                lastQuadrant = quadrant;
             }
+
+            requestAnimationFrame(updateRadarScan);
         }
 
-        // Запускаем цикл обновления точек (каждые 4 секунды — в такт прохода луча)
-        spawnDots();
-        setInterval(spawnDots, 4000);
+        // Запуск трекера сканирования
+        setTimeout(updateRadarScan, 200);
     </script>
 </body>
 </html>
