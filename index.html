@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>СамоСобой Mini App</title>
+    <!-- Подключаем Telegram WebApp JS SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <!-- Tailwind CSS для быстрой и красивой стилизации -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Адаптация под вырез iPhone (safe areas) */
+        body {
+            padding-top: env(safe-area-inset-top);
+            padding-bottom: env(safe-area-inset-bottom);
+            background-color: #0b0c0e;
+            user-select: none;
+            -webkit-user-select: none;
+            overflow: hidden;
+        }
+        /* Плавное покачивание кораблика */
+        @keyframes float {
+            0% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-10px) rotate(2deg); }
+            100% { transform: translateY(0px) rotate(0deg); }
+        }
+        /* Анимация движения волн на заднем фоне */
+        @keyframes waveMove {
+            0% { transform: translateX(0) translateZ(0) scaleY(1); }
+            50% { transform: translateX(-25%) translateZ(0) scaleY(0.8); }
+            100% { transform: translateX(-50%) translateZ(0) scaleY(1); }
+        }
+        .floating-ship {
+            animation: float 4s ease-in-out infinite;
+        }
+        .wave-bg {
+            animation: waveMove 12s linear infinite;
+        }
+    </style>
+</head>
+<body class="h-screen w-full text-white flex flex-col justify-between items-center font-sans">
+    
+    <!-- Шапка приложения -->
+    <div class="w-full flex justify-between items-center px-6 pt-6 z-10">
+        <span class="text-xs text-gray-500 uppercase tracking-widest font-medium">анонимный океан</span>
+        <div class="h-2 w-2 rounded-full bg-blue-500 animate-pulse"></div>
+    </div>
+
+    <!-- Центральный логотип и статус-заглушка -->
+    <div class="flex flex-col items-center justify-center flex-grow z-10 px-6 text-center">
+        <!-- Синий круг с пиксельным корабликом -->
+        <div class="w-32 h-32 rounded-full bg-[#1e61eb] flex items-center justify-center shadow-[0_0_40px_rgba(30,97,235,0.3)] mb-8 floating-ship">
+            <!-- Пиксельный кораблик из SVG прямо в коде (как на твоем логотипе) -->
+            <svg class="w-20 h-20 text-white" viewBox="0 0 24 24" fill="currentColor">
+                <!-- Рисуем аккуратную пиксельную структуру кораблика -->
+                <path d="M4 14h16v1h-1v1h-1v1H6v-1H5v-1H4v-1zm4-1h1v-1H8v1zm3 0h1v-3h-1v3zm3 0h1v-5h-1v5z" />
+                <path d="M3 13h18v1H3z" opacity="0.5"/>
+            </svg>
+        </div>
+        
+        <h1 class="text-3xl font-semibold tracking-tight mb-2">СамоСобой</h1>
+        <p class="text-gray-400 text-sm max-w-[280px] leading-relaxed">
+            Мы вовсю готовим гавань к открытию. Скоро здесь будут твои активные чаты и запущенные мысли.
+        </p>
+    </div>
+
+    <!-- Нижняя часть с красивой пиксельной волной и кнопкой закрытия -->
+    <div class="w-full relative flex flex-col items-center pb-8 z-10">
+        <!-- Кнопка действия Telegram (интегрированная) -->
+        <button onclick="closeApp()" class="px-8 py-3.5 bg-[#1a1b1f] hover:bg-[#24262b] active:scale-95 transition-all text-sm font-medium rounded-full border border-gray-800 text-gray-300 shadow-lg mb-8">
+            Вернуться в бот
+        </button>
+
+        <p class="text-[10px] text-gray-600 tracking-wider uppercase">всё сложится само собой • 2026</p>
+    </div>
+
+    <!-- Декоративные волны на фоне (как на твоем баннере) -->
+    <div class="absolute bottom-0 left-0 w-[200%] h-32 opacity-10 pointer-events-none overflow-hidden">
+        <svg class="absolute bottom-0 w-full h-full wave-bg text-blue-500" fill="currentColor" viewBox="0 0 1200 120" preserveAspectRatio="none">
+            <path d="M0,60 C150,100 350,20 500,60 C650,100 850,20 1000,60 C1150,100 1350,20 1500,60 L1500,120 L0,120 Z"></path>
+        </svg>
+    </div>
+
+    <script>
+        // Инициализация Telegram WebApp
+        const tg = window.Telegram.WebApp;
+        
+        // Настраиваем цвета интерфейса Telegram в тон приложения
+        tg.ready();
+        tg.expand(); // Раскрываем на весь экран
+        
+        // Устанавливаем цвета статус-бара и хедера
+        tg.setHeaderColor('#0b0c0e');
+        tg.setBackgroundColor('#0b0c0e');
+
+        // Функция закрытия приложения
+        function closeApp() {
+            tg.close();
+        }
+    </script>
+</body>
+</html>
