@@ -17,10 +17,10 @@
             font-family: 'Inter', sans-serif;
             padding-top: env(safe-area-inset-top);
             padding-bottom: env(safe-area-inset-bottom);
-            background-color: #000000; /* Глубокий черный цвет Apple */
+            background-color: #000000;
             user-select: none;
             -webkit-user-select: none;
-            overflow: hidden;
+            overflow-x: hidden;
         }
         /* Статичные белые волны на фоне с деликатной прозрачностью (8%) */
         .wave-bottom {
@@ -29,74 +29,275 @@
             background-repeat: no-repeat;
             background-position: bottom;
         }
+        /* Стилизация скролла */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        /* Кастомный фокус и размытие для карточек iOS */
+        .ios-card {
+            background-color: #0d0d10;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .ios-card:active {
+            transform: scale(0.98);
+            background-color: #121216;
+        }
     </style>
 </head>
-<body class="h-screen w-full text-white flex flex-col justify-between items-center relative">
+<body class="h-screen w-full text-white flex flex-col justify-between items-center relative overflow-hidden">
     
-    <!-- ШАПКА (Мелкий заголовок и лого без фона рядом в один ряд) -->
-    <header class="w-full flex justify-between items-center px-6 pt-6 z-10 shrink-0">
+    <!-- ХЕДЕР (Зона шапки с мини-лого и названием без фона в один ряд) -->
+    <header class="w-full flex justify-between items-center px-6 pt-5 pb-3 z-30 shrink-0">
         <div class="flex items-center space-x-2">
-            <!-- Чистый логотип из папки public/icons/logo.png без фона -->
+            <!-- Чистый логотип без подложек -->
             <img 
                 src="public/icons/logo.png" 
                 alt="" 
                 class="w-5 h-5 object-contain"
                 onerror="this.style.display='none'; document.getElementById('logo-fallback').style.display='block';"
             />
-            <!-- Запасной SVG логотип, если картинка logo.png еще не загружена в репозиторий -->
             <svg id="logo-fallback" class="w-5 h-5 text-[#006DF9] hidden" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M4 14h16v1h-1v1h-1v1H6v-1H5v-1H4v-1zm4-1h1v-1H8v1zm3 0h1v-3h-1v3zm3 0h1v-5h-1v5z" />
             </svg>
             <span class="text-[11px] text-zinc-400 uppercase tracking-[0.25em] font-bold">СамоСобой</span>
         </div>
-        <div class="h-1.5 w-1.5 rounded-full bg-zinc-800"></div>
+        
+        <!-- Системный статус сети в стиле iOS -->
+        <div class="flex items-center space-x-1.5 bg-[#0d0d10] border border-white/[0.04] px-3 py-1 rounded-full">
+            <span class="h-1.5 w-1.5 rounded-full bg-[#006DF9] animate-pulse"></span>
+            <span class="text-[9px] text-zinc-400 font-bold uppercase tracking-wider">online</span>
+        </div>
     </header>
 
-    <!-- ЦЕНТР (Без заголовков, только стильный пиксельный концепт-арт и описание) -->
-    <div class="flex flex-col items-center justify-center flex-grow z-10 px-8 text-center">
-        <!-- Минималистичный пиксельный кораблик в акцентном цвете #006DF9 -->
-        <div class="mb-8 text-[#006DF9]">
-            <svg class="w-24 h-24" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M4 14h16v1h-1v1h-1v1H6v-1H5v-1H4v-1zm4-1h1v-1H8v1zm3 0h1v-3h-1v3zm3 0h1v-5h-1v5z" />
-                <path d="M3 13h18v1H3z" opacity="0.2"/>
-            </svg>
-        </div>
+    <!-- ОСНОВНОЙ КОНТЕНТ (Скролл-зона с карточками iOS 26) -->
+    <main class="w-full flex-grow overflow-y-auto no-scrollbar px-5 py-2 space-y-6 z-10">
         
-        <p class="text-zinc-400 text-sm max-w-[290px] leading-relaxed font-normal tracking-wide">
-            Мы вовсю готовим гавань к открытию. Скоро здесь будут твои активные чаты и запущенные мысли.
-        </p>
-    </div>
+        <!-- КАРТОЧКА 1: Быстрый запуск кораблика (Вдохновлено формой доступа) -->
+        <div class="ios-card rounded-[28px] p-6 flex flex-col space-y-4">
+            <div class="flex items-center space-x-4">
+                <div class="w-10 h-10 rounded-2xl bg-[#006DF9]/10 flex items-center justify-center text-[#006DF9] shrink-0">
+                    <!-- Иконка бумажного кораблика -->
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                    </svg>
+                </div>
+                <div class="flex-grow">
+                    <h3 class="text-sm font-bold text-zinc-100">Запустить мысль в плавание</h3>
+                    <p class="text-xs text-zinc-500 mt-0.5">Она уплывет анонимно в общий океан</p>
+                </div>
+            </div>
 
-    <!-- НИЗ (Кнопка возврата в стиле iOS и копирайт) -->
-    <div class="w-full relative flex flex-col items-center pb-8 z-10 shrink-0">
-        <!-- Фирменная кнопка Apple в акцентном цвете #006DF9 -->
+            <textarea 
+                id="message-input"
+                maxlength="280"
+                placeholder="Напиши то, о чем сейчас думаешь..." 
+                class="w-full h-20 bg-transparent text-xs text-zinc-300 placeholder-zinc-600 focus:outline-none resize-none"
+                oninput="checkInput(this)"
+            ></textarea>
+
+            <div class="flex justify-between items-center pt-2 border-t border-white/[0.03]">
+                <span id="char-counter" class="text-[10px] text-zinc-600 font-medium">0 / 280 символов</span>
+                <button 
+                    onclick="sendMessage()"
+                    id="launch-btn"
+                    class="px-5 py-2.5 bg-[#121214] text-zinc-500 rounded-full text-xs font-bold transition-all duration-200"
+                    disabled
+                >
+                    Запустить
+                </button>
+            </div>
+        </div>
+
+        <!-- КАРТОЧКА 2: Системные настройки радара (Попиксельно как на скриншоте 2) -->
+        <div class="ios-card rounded-[28px] p-6 flex flex-col space-y-4">
+            <div class="flex items-center space-x-4 border-b border-white/[0.03] pb-4">
+                <div class="w-10 h-10 rounded-2xl bg-zinc-900/50 flex items-center justify-center text-zinc-400 shrink-0">
+                    <!-- Иконка радара/глаза -->
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="text-sm font-bold text-zinc-100">Настройки твоего радара</h3>
+                    <p class="text-xs text-zinc-500 mt-0.5">Выбери, какие кораблики прибивает к твоему берегу</p>
+                </div>
+            </div>
+
+            <!-- Строка 1: Количество корабликов -->
+            <div class="flex justify-between items-center py-1">
+                <div class="flex flex-col">
+                    <span class="text-xs font-bold text-zinc-300">Оффлайн кораблики</span>
+                    <span class="text-[10px] text-zinc-500 mt-0.5">Лимит входящих сообщений в час</span>
+                </div>
+                <select class="bg-[#16161a] border border-white/[0.04] text-[11px] font-bold rounded-xl px-3 py-1.5 text-zinc-300 focus:outline-none focus:border-[#006DF9]">
+                    <option>1-3 в час</option>
+                    <option selected>3-5 в час</option>
+                    <option>5-7 в час</option>
+                    <option>Я не хочу</option>
+                </select>
+            </div>
+
+            <!-- Строка 2: Возрастной фильтр -->
+            <div class="flex justify-between items-center py-1">
+                <div class="flex flex-col">
+                    <span class="text-xs font-bold text-zinc-300">Возрастной фильтр</span>
+                    <span class="text-[10px] text-zinc-500 mt-0.5">Принимать только от сверстников</span>
+                </div>
+                <!-- Интерактивный кастомный переключатель в стиле Apple iOS -->
+                <button onclick="toggleSwitch(this)" id="age-switch" class="w-10 h-6 bg-[#16161a] border border-white/[0.06] rounded-full p-0.5 transition-all duration-200 relative shrink-0">
+                    <span class="block w-4.5 h-4.5 bg-zinc-500 rounded-full transition-all duration-200 transform translate-x-0"></span>
+                </button>
+            </div>
+        </div>
+
+        <!-- КАРТОЧКА 3: "Curated by Orb" / Популярные течения (Попиксельно как на скриншоте 1) -->
+        <div class="flex flex-col space-y-3">
+            <div class="flex justify-between items-center px-2">
+                <span class="text-xs font-extrabold text-zinc-500 uppercase tracking-widest">Течения в океане</span>
+                <span class="text-[10px] text-[#006DF9] font-bold">Смотреть все</span>
+            </div>
+
+            <!-- Горизонтальная сетка популярных каналов/тем -->
+            <div class="grid grid-cols-2 gap-3">
+                <!-- Карточка Течения 1 -->
+                <div class="ios-card rounded-[24px] p-4 flex flex-col justify-between h-36 relative overflow-hidden bg-gradient-to-b from-zinc-900/30 to-black/80">
+                    <div class="flex justify-between items-start">
+                        <span class="text-[9px] bg-white/[0.06] border border-white/[0.04] text-zinc-400 font-bold px-2 py-1 rounded-md uppercase tracking-wide">1249 бортов</span>
+                        <span class="text-xs">🌊</span>
+                    </div>
+                    <div>
+                        <h4 class="text-xs font-bold text-zinc-100">Глубокие мысли</h4>
+                        <p class="text-[9px] text-zinc-500 mt-0.5">Одиночество, сны и вечность</p>
+                    </div>
+                </div>
+
+                <!-- Карточка Течения 2 -->
+                <div class="ios-card rounded-[24px] p-4 flex flex-col justify-between h-36 relative overflow-hidden bg-gradient-to-b from-zinc-900/30 to-black/80">
+                    <div class="flex justify-between items-start">
+                        <span class="text-[9px] bg-[#006DF9]/10 border border-[#006DF9]/20 text-[#006DF9] font-bold px-2 py-1 rounded-md uppercase tracking-wide">321 борт</span>
+                        <span class="text-xs">⚓️</span>
+                    </div>
+                    <div>
+                        <h4 class="text-xs font-bold text-zinc-100">Ищу тебя</h4>
+                        <p class="text-[9px] text-zinc-500 mt-0.5">Анонимные крики о помощи</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- НИЗ (Кнопка действия Apple iOS 26 и Копирайт) -->
+    <footer class="w-full relative flex flex-col items-center pb-8 pt-4 z-20 shrink-0">
+        <!-- Ключевая кнопка Apple в акцентном цвете #006DF9 (попиксельно со скриншота 2) -->
         <button 
             onclick="closeApp()" 
-            class="px-12 py-4 bg-[#006DF9] hover:bg-[#005bc4] active:scale-95 transition-all text-xs font-bold uppercase tracking-widest rounded-full text-white shadow-[0_0_30px_rgba(0,109,249,0.25)] mb-12"
+            class="w-[85%] py-4 bg-[#006DF9] hover:bg-[#005bc4] active:scale-95 transition-all text-xs font-bold uppercase tracking-[0.2em] rounded-full text-white shadow-[0_10px_40px_rgba(0,109,249,0.3)] mb-8"
         >
             Вернуться в бот
         </button>
 
-        <p class="text-[9px] text-zinc-600 tracking-[0.3em] uppercase font-bold">всё сложится само собой • 2026</p>
-    </div>
+        <p class="text-[9px] text-zinc-600 tracking-[0.3em] uppercase font-extrabold">всё сложится само собой • 2026</p>
+    </footer>
 
-    <!-- Декоративные статичные белые волны (8% прозрачности) -->
+    <!-- Декоративные белые волны на фоне (8% прозрачности) -->
     <div class="absolute bottom-0 left-0 w-full h-44 pointer-events-none wave-bottom opacity-100 z-0"></div>
 
+    <!-- ТОСТ-УВЕДОМЛЕНИЕ (iOS стиль) -->
+    <div id="toast" class="absolute top-10 transform -translate-y-24 opacity-0 transition-all duration-300 z-50 bg-[#0d0d10]/95 backdrop-blur-md border border-white/[0.08] rounded-full px-5 py-3 text-xs text-zinc-200 flex items-center space-x-2.5 shadow-2xl">
+        <span class="text-[#006DF9]">⛵️</span>
+        <span id="toast-text">Кораблик запущен!</span>
+    </div>
+
     <script>
-        // Инициализируем Telegram WebApp
+        // Инициализация Telegram WebApp
         const tg = window.Telegram.WebApp;
-        
-        tg.ready();
-        tg.expand();
+        if (tg) {
+            tg.ready();
+            tg.expand();
+            tg.setHeaderColor('#000000');
+            tg.setBackgroundColor('#000000');
+        }
 
-        // Настраиваем системные цвета ТГ в ультра-черный стиль
-        tg.setHeaderColor('#000000');
-        tg.setBackgroundColor('#000000');
+        // Логика переключателя возраста в стиле iOS
+        let ageFilterActive = false;
+        function toggleSwitch(btn) {
+            ageFilterActive = !ageFilterActive;
+            const dot = btn.querySelector('span');
+            
+            if (ageFilterActive) {
+                btn.classList.remove('bg-[#16161a]');
+                btn.classList.add('bg-[#006DF9]');
+                dot.classList.remove('translate-x-0', 'bg-zinc-500');
+                dot.classList.add('translate-x-4', 'bg-white');
+                showToast("Фильтр по возрасту активирован");
+            } else {
+                btn.classList.add('bg-[#16161a]');
+                btn.classList.remove('bg-[#006DF9]');
+                dot.classList.remove('translate-x-4', 'bg-white');
+                dot.classList.add('translate-x-0', 'bg-zinc-500');
+                showToast("Фильтр по возрасту выключен");
+            }
+        }
 
-        // Закрытие мини-аппа
+        // Проверка лимита символов
+        function checkInput(textarea) {
+            const text = textarea.value.trim();
+            const counter = document.getElementById('char-counter');
+            const btn = document.getElementById('launch-btn');
+            
+            counter.innerText = `${textarea.value.length} / 280 символов`;
+            
+            if (text.length > 0) {
+                btn.removeAttribute('disabled');
+                btn.classList.remove('bg-[#121214]', 'text-zinc-500');
+                btn.classList.add('bg-[#006DF9]', 'text-white', 'hover:bg-[#005bc4]');
+            } else {
+                btn.setAttribute('disabled', 'true');
+                btn.classList.add('bg-[#121214]', 'text-zinc-500');
+                btn.classList.remove('bg-[#006DF9]', 'text-white', 'hover:bg-[#005bc4]');
+            }
+        }
+
+        // Симуляция успешного запуска
+        function sendMessage() {
+            const textarea = document.getElementById('message-input');
+            
+            // Плавное очищение с эффектом затухания
+            textarea.style.opacity = '0';
+            setTimeout(() => {
+                textarea.value = '';
+                checkInput(textarea);
+                textarea.style.opacity = '1';
+                showToast("Кораблик уплыл в открытый океан!");
+            }, 300);
+        }
+
+        // Отображение системных тостов iOS
+        function showToast(text) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-text').innerText = text;
+            
+            toast.classList.remove('opacity-0', '-translate-y-24');
+            toast.classList.add('opacity-100', 'translate-y-0');
+            
+            setTimeout(() => {
+                toast.classList.remove('opacity-100', 'translate-y-0');
+                toast.classList.add('opacity-0', '-translate-y-24');
+            }, 2300);
+        }
+
+        // Закрытие мини-приложения
         function closeApp() {
-            tg.close();
+            if (tg) {
+                tg.close();
+            }
         }
     </script>
 </body>
