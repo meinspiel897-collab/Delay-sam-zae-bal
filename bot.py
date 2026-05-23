@@ -3,7 +3,7 @@ import logging
 import asyncio
 import threading
 import html
-from flask import Flask, send_from_directory
+from flask import Flask
 from aiogram import Bot, Dispatcher, types, F
 from aiogram.filters import Command
 from aiogram.utils.keyboard import InlineKeyboardBuilder
@@ -20,25 +20,19 @@ if not API_TOKEN:
 bot = Bot(token=API_TOKEN)
 dp = Dispatcher()
 
-# Данные для бота
+# Ссылки и константы
 WHALE_STICKER_ID = "CAACAgEAAxkBAAFKV1RqEF_JacpzbFDVm0tHXYhFeNMFegACGwMAArAHGESRLvZwzZJ9sjsE"
 OFFICIAL_CHANNEL_URL = "https://t.me/samosoboy_official"
 
-# Указываем адрес твоего Mini App.
-# ВАЖНО: Telegram строго требует HTTPS-протокол. 
-# Мы настроили Flask так, что он раздает созданный нами index.html.
-# На Render твой домен будет иметь вид: https://<твое-имя-на-рендер>.onrender.com
-RENDER_EXTERNAL_URL = os.getenv("RENDER_EXTERNAL_URL", "https://delay-sam-zae-bal.onrender.com")
-MINI_APP_URL = RENDER_EXTERNAL_URL  # Теперь кнопка будет открывать этот же веб-сервис на Render!
+# Указываем твой реальный URL для Mini App на GitHub Pages
+MINI_APP_URL = "https://meinspiel897-collab.github.io/Delay-sam-zae-bal/"
 
 # --- НАСТРОЙКА FLASK СЕРВЕРА ДЛЯ RENDER WEB SERVICE ---
-# Flask теперь не просто держит порт, а отдает красивый index.html для твоего Mini App!
-flask_app = Flask(__name__, static_folder='.')
+flask_app = Flask(__name__)
 
 @flask_app.route('/')
 def home():
-    # Отдаем файл index.html, который лежит в той же папке
-    return send_from_directory('.', 'index.html')
+    return "Бот СамоСобой запущен и готов к плаванию!", 200
 
 @flask_app.route('/healthz')
 def healthz():
@@ -49,11 +43,11 @@ def run_flask():
     logging.info(f"Запуск Flask-сервера на порту {port}...")
     flask_app.run(host="0.0.0.0", port=port)
 
-# --- КЛАВИАТУРЫ И ШАГИ ОПРОСА ---
+# --- КЛАВИАТУРЫ И ШАГИ ОПРОСА (АБСОЛЮТНЫЙ МИНИМАЛИЗМ, БЕЗ ЭМОДЗИ) ---
 
 def get_start_keyboard():
     builder = InlineKeyboardBuilder()
-    builder.button(text="🎣 Начать отлавливать", callback_data="step_1")
+    builder.button(text="Начать", callback_data="step_1")
     return builder.as_markup()
 
 def get_step_1_keyboard():
@@ -77,16 +71,16 @@ def get_step_2_keyboard():
 
 def get_step_3_keyboard():
     builder = InlineKeyboardBuilder()
-    builder.button(text="📢 Подписаться", url=OFFICIAL_CHANNEL_URL)
-    builder.button(text="🏁 Завершить", callback_data="finish")
+    builder.button(text="Подписаться", url=OFFICIAL_CHANNEL_URL)
+    builder.button(text="Завершить", callback_data="finish")
     builder.adjust(1)
     return builder.as_markup()
 
 def get_final_keyboard():
     builder = InlineKeyboardBuilder()
-    # Две кнопки в один ряд
-    builder.button(text="⛵️ Отправить кораблик", callback_data="send_boat")
-    builder.button(text="📱 Открыть приложение", web_app=types.WebAppInfo(url=MINI_APP_URL))
+    # Строгие и минималистичные кнопки без эмодзи по 2 в ряд
+    builder.button(text="Отправить кораблик", callback_data="send_boat")
+    builder.button(text="Открыть приложение", web_app=types.WebAppInfo(url=MINI_APP_URL))
     builder.adjust(2)
     return builder.as_markup()
 
@@ -149,10 +143,8 @@ async def process_step_3(callback: types.CallbackQuery):
 @dp.callback_query(F.data == "finish")
 async def process_finish(callback: types.CallbackQuery):
     chat_id = callback.message.chat.id
-    # Безопасное имя пользователя
     safe_name = html.escape(callback.from_user.first_name or "Друг")
     
-    # Подтверждаем клик немедленно, чтобы кнопка перестала "часиться"
     await callback.answer()
 
     # 1. Удаляем текущее сообщение опроса
@@ -170,15 +162,17 @@ async def process_finish(callback: types.CallbackQuery):
     # 3. Делаем небольшую паузу
     await asyncio.sleep(0.5)
 
-    # 4. Финальный текст
+    # 4. Финальный текст со стилем blockquote в Telegram
     final_text = (
         f"С регистрацией, {safe_name}! 🎉\n\n"
         "Отправь свой первый кораблик в плавание через приложение или с помощью бота, если так удобнее 😉\n\n"
         "Пожалуйста, будь добр и не оставляй слишком личную информацию. "
-        "Также рекомендуем ознакомиться со списком команд:\n\n"
-        "▎ /start - приветствие новичков и меню\n"
-        "▎ /catch - выловить чей-нибудь кораблик\n"
-        "▎ /profile - твой профиль"
+        "Также рекомендуем ознакомиться со списком команд:\n"
+        "<blockquote>"
+        "/start - приветствие новичков и меню\n"
+        "/catch - выловить чей-нибудь кораблик\n"
+        "/profile - твой профиль"
+        "</blockquote>"
     )
     
     try:
@@ -190,7 +184,7 @@ async def process_finish(callback: types.CallbackQuery):
         )
         logging.info("Финальное приветственное сообщение успешно отправлено.")
     except Exception as e:
-        logging.error(f"КРИТИЧЕСКАЯ ОШИБКА ОТПРАВКИ СООБЩЕНИЯ: {e}")
+        logging.error(f"Ошибка отправки сообщения: {e}")
 
 @dp.callback_query(F.data == "send_boat")
 async def process_send_boat(callback: types.CallbackQuery):
@@ -202,18 +196,14 @@ async def process_send_boat(callback: types.CallbackQuery):
 # --- ОСНОВНОЙ ЗАПУСК ---
 
 async def main():
-    # Запускаем Flask в отдельном фоновом потоке
     flask_thread = threading.Thread(target=run_flask, daemon=True)
     flask_thread.start()
     
-    # Сбрасываем старые вебхуки и удаляем зависшие апдейты
     logging.info("Очистка старых вебхуков и зависших запросов...")
     await bot.delete_webhook(drop_pending_updates=True)
     
-    # Пауза перед стартом поллинга для избежания конфликтов
     await asyncio.sleep(2)
     
-    # Запускаем поллинг сообщений
     logging.info("Запуск поллинга сообщений бота...")
     await dp.start_polling(bot)
 
