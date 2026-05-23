@@ -24,18 +24,62 @@
             -webkit-user-select: none;
         }
 
-        /* Анимации волн */
-        @keyframes waveLeft {
-            0% { transform: translateX(0); }
-            50% { transform: translateX(-35%); }
-            100% { transform: translateX(0); }
-        }
-        @keyframes waveRight {
-            0% { transform: translateX(-50%); }
-            50% { transform: translateX(-15%); }
-            100% { transform: translateX(-50%); }
+        /* Контейнер для центральных кругов-волн */
+        .circle-wave-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 85vw; /* Почти на пол-экрана */
+            max-width: 340px;
+            aspect-ratio: 1 / 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
+        /* Базовый стиль для SVG слоев */
+        .circle-wave-layer {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            transform-origin: center;
+        }
+
+        /* Задний круг: чуть крупнее, прозрачнее, крутится по часовой стрелке с пульсацией */
+        .circle-back {
+            width: 112%;
+            height: 112%;
+            fill: #ffffff; /* Можно заменить на акцентный цвет, например #3b82f6 */
+            opacity: 0.03;
+            animation: rotateClockwise 20s linear infinite, pulseSlow 6s ease-in-out infinite;
+        }
+
+        /* Передний круг: основной, крутится против часовой стрелки */
+        .circle-front {
+            fill: #ffffff; /* Акцентный цвет */
+            opacity: 0.06;
+            animation: rotateCounterClockwise 14s linear infinite;
+        }
+
+        /* Анимации вращения */
+        @keyframes rotateClockwise {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes rotateCounterClockwise {
+            0% { transform: rotate(360deg); }
+            100% { transform: rotate(0deg); }
+        }
+
+        /* Дополнительная мягкая пульсация для создания эффекта "живого" объема */
+        @keyframes pulseSlow {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.04); }
+        }
+
+        /* Оригинальные анимации нижних волн */
         .wave-container {
             position: absolute;
             bottom: 0;
@@ -78,24 +122,45 @@
 </head>
 <body>
 
-    <!-- Заголовок в самом верху -->
+    <!-- Заголовок остался строго на своем месте -->
     <header class="w-full flex justify-center pt-8 z-10">
         <div class="flex items-center space-x-2.5">
-            <!-- Логотип слева -->
             <img 
                 src="public/icons/logo.png" 
                 alt="Логотип" 
                 class="w-5 h-5 object-contain"
                 onerror="this.style.display='none'"
             />
-            <!-- Заголовок с плотным трекингом -->
             <h1 class="text-base font-semibold tracking-tight text-white uppercase">
                 СамоСобой
             </h1>
         </div>
     </header>
 
-    <!-- Океанский слой волн -->
+    <!-- Центрированный блок с волнообразными кругами -->
+    <div class="circle-wave-container">
+        <!-- Задний круг (крупнее, противоположное движение) -->
+        <svg class="circle-wave-layer circle-back" viewBox="0 0 200 200">
+            <!-- Специально деформированный контур круга с 4 волновыми пиками -->
+            <path d="M 100, 15 
+                     C 145, 10  185, 50  185, 100 
+                     C 190, 145 145, 182 100, 185 
+                     C 50,  190 12,  150 15,  100 
+                     C 10,  55  50,  20  100, 15 Z" />
+        </svg>
+
+        <!-- Передний основной круг -->
+        <svg class="circle-wave-layer circle-front" viewBox="0 0 200 200">
+            <!-- Альтернативная деформация для создания асинхронного эффекта волн -->
+            <path d="M 100, 20 
+                     C 155, 15  180, 60  180, 100 
+                     C 180, 150 140, 175 100, 180 
+                     C 55,  185 25,  140 20,  100 
+                     C 15,  55  60,  25  100, 20 Z" />
+        </svg>
+    </div>
+
+    <!-- Океанский слой волн внизу экрана -->
     <div class="wave-container">
         <svg class="wave-layer wave-back" viewBox="0 0 1200 120" preserveAspectRatio="none">
             <path d="M0,80 C150,110 350,50 500,80 C650,110 850,50 1000,80 C1150,110 1350,50 1500,80 L1500,120 L0,120 Z"></path>
