@@ -8,7 +8,7 @@ from aiogram import Bot, Dispatcher, types, F
 from aiogram.filters import Command
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
-# Настройка логирования для отслеживания событий
+# Настройка детального логирования
 logging.basicConfig(level=logging.INFO)
 
 # Получаем токен из переменных окружения Render
@@ -76,10 +76,10 @@ def get_step_3_keyboard():
 
 def get_final_keyboard():
     builder = InlineKeyboardBuilder()
-    # Располагаем две кнопки в один ряд (по две в ряду)
+    # Две кнопки в один ряд
     builder.button(text="⛵️ Отправить кораблик", callback_data="send_boat")
     builder.button(text="📱 Открыть приложение", web_app=types.WebAppInfo(url=MINI_APP_URL))
-    builder.adjust(2)  # Расположить горизонтально по 2 в ряд
+    builder.adjust(2)
     return builder.as_markup()
 
 # --- ОБРАБОТЧИКИ СОБЫТИЙ БОТА ---
@@ -141,38 +141,37 @@ async def process_step_3(callback: types.CallbackQuery):
 @dp.callback_query(F.data == "finish")
 async def process_finish(callback: types.CallbackQuery):
     chat_id = callback.message.chat.id
-    # Безопасно экранируем имя пользователя
+    # Безопасное имя пользователя
     safe_name = html.escape(callback.from_user.first_name or "Друг")
     
-    # Сначала закрываем часы ожидания кнопки
+    # Подтверждаем клик немедленно, чтобы кнопка перестала "часиться"
     await callback.answer()
 
-    # 1. Удаляем текущее интерактивное сообщение опроса
+    # 1. Удаляем текущее сообщение опроса
     try:
         await callback.message.delete()
     except Exception as e:
         logging.error(f"Не удалось удалить сообщение: {e}")
         
-    # 2. Отправляем стикер кита из твоего лога
+    # 2. Отправляем стикер кита
     try:
         await bot.send_sticker(chat_id=chat_id, sticker=WHALE_STICKER_ID)
     except Exception as e:
         logging.error(f"Не удалось отправить стикер: {e}")
 
-    # 3. Добавим небольшую паузу в 1 секунду, чтобы избежать конфликтов доставки сообщений в Telegram
-    await asyncio.sleep(1)
+    # 3. Делаем небольшую паузу
+    await asyncio.sleep(0.5)
 
-    # 4. Финальное поздравление и пролог с красивым HTML-blockquote блоком
+    # 4. Финальный текст БЕЗ тега <blockquote> для максимальной совместимости.
+    # Мы используем красивую моноширинную разметку через <code> или стильный юникод-символ цитирования '▎'
     final_text = (
         f"С регистрацией, {safe_name}! 🎉\n\n"
         "Отправь свой первый кораблик в плавание через приложение или с помощью бота, если так удобнее 😉\n\n"
         "Пожалуйста, будь добр и не оставляй слишком личную информацию. "
-        "Также рекомендуем ознакомиться со списком команд:\n"
-        "<blockquote>"
-        "/start - приветствие новичков и меню\n"
-        "/catch - выловить чей-нибудь кораблик\n"
-        "/profile - твой профиль"
-        "</blockquote>"
+        "Также рекомендуем ознакомиться со списком команд:\n\n"
+        "▎ /start - приветствие новичков и меню\n"
+        "▎ /catch - выловить чей-нибудь кораблик\n"
+        "▎ /profile - твой профиль"
     )
     
     try:
@@ -182,8 +181,10 @@ async def process_finish(callback: types.CallbackQuery):
             reply_markup=get_final_keyboard(),
             parse_mode="HTML"
         )
+        logging.info("Финальное приветственное сообщение успешно отправлено.")
     except Exception as e:
-        logging.error(f"Ошибка при отправке финального сообщения: {e}")
+        # Если отправка всё-таки упадет, в логах Render появится точная причина ошибки!
+        logging.error(f"КРИТИЧЕСКАЯ ОШИБКА ОТПРАВКИ СООБЩЕНИЯ: {e}")
 
 @dp.callback_query(F.data == "send_boat")
 async def process_send_boat(callback: types.CallbackQuery):
@@ -195,18 +196,18 @@ async def process_send_boat(callback: types.CallbackQuery):
 # --- ОСНОВНОЙ ЗАПУСК ---
 
 async def main():
-    # Запускаем Flask в отдельном фоновом потоке для прохождения Health Check на Render
+    # Запускаем Flask в отдельном фоновом потоке
     flask_thread = threading.Thread(target=run_flask, daemon=True)
     flask_thread.start()
     
-    # 1. Перед стартом сбрасываем вебхуки и удаляем зависшие апдейты
+    # Сбрасываем старые вебхуки и удаляем зависшие апдейты
     logging.info("Очистка старых вебхуков и зависших запросов...")
     await bot.delete_webhook(drop_pending_updates=True)
     
-    # 2. Небольшая пауза, чтобы старый инстанс на Render успел корректно завершиться
+    # Пауза перед стартом поллинга для избежания конфликтов
     await asyncio.sleep(2)
     
-    # 3. Запускаем поллинг сообщений
+    # Запускаем поллинг сообщений
     logging.info("Запуск поллинга сообщений бота...")
     await dp.start_polling(bot)
 
