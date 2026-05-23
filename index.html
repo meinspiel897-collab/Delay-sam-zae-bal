@@ -60,7 +60,7 @@
             overflow: visible;
         }
 
-        /* --- ВОЛНОВЫЕ КРУГИ --- */
+        /* --- ВОЛНОВЫЕ КРУГИ БЭКГРАУНДА --- */
         .circle-layer-1 {
             width: 100%; height: 100%;
             fill: #006DF9; 
@@ -76,14 +76,14 @@
             animation: rotateClock 18s linear infinite;
         }
         .circle-layer-3 {
-            width: 125%; height: 125%; /* Сделали чуток крупнее по вашему запросу */
+            width: 125%; height: 125%; 
             fill: #006DF9; 
             opacity: 0.15; 
             z-index: 1;
             animation: rotateCounter 30s linear infinite;
         }
 
-        /* --- ДИHАМИЧЕСКИЕ ОКРУЖНОСТИ РАДАРА (Вращаются) --- */
+        /* --- ДИНАМИЧЕСКИЕ ОКРУЖНОСТИ РАДАРА (Вращаются) --- */
         .radar-circles-moving {
             width: 100%;
             height: 100%;
@@ -92,14 +92,14 @@
             animation: rotateCounter 25s linear infinite; 
         }
 
-        /* Прозрачный белый с холодным синеватым оттеком (rgba 215, 235, 255) */
+        /* Еще более прозрачный белый с холодным синеватым оттенком (0.32 вместо 0.45) */
         .radar-circles-moving path {
             fill: none;
-            stroke: rgba(215, 235, 255, 0.45); 
+            stroke: rgba(215, 235, 255, 0.32); 
             stroke-width: 1.2;
         }
 
-        /* --- СТАТИЧНЫЕ ЛИНИИ РАДАРА (Не крутятся, стоят на месте) --- */
+        /* --- СТАТИЧНЫЙ КРЕСТ (Почти незаметно искажен, не крутится) --- */
         .radar-lines-static {
             width: 100%;
             height: 100%;
@@ -107,24 +107,33 @@
             pointer-events: none;
         }
 
-        .radar-lines-static line {
-            stroke: rgba(215, 235, 255, 0.35); /* Холодный синеватый оттенок */
+        /* Линии креста сделаны ультра-полупрозрачными (0.22) */
+        .radar-lines-static path {
+            fill: none;
+            stroke: rgba(215, 235, 255, 0.22);
             stroke-width: 1;
         }
 
-        /* --- СКАНИРУЮЩИЙ ЛУЧ РАДАРА (Мягкий холодный свет) --- */
-        .radar-sweep {
-            width: 96%; height: 96%; 
-            border-radius: 50%;
-            background: conic-gradient(
-                from 0deg, 
-                transparent 50%, 
-                rgba(0, 109, 249, 0.08) 80%, 
-                rgba(215, 235, 255, 0.45) 100% /* Тоже уходит в синеватый белый */
-            );
+        /* --- ИСКАЖАЮЩИЙСЯ ЛУЧ РАДАРА --- */
+        /* Поворачиваем сам контейнер с кастомным деформированным лучом */
+        .radar-sweep-container {
+            width: 100%;
+            height: 100%;
             z-index: 4;
             pointer-events: none;
             animation: sweepRotate 4s linear infinite;
+        }
+
+        /* Тонкая сине-белая линия луча со шлейфом */
+        .radar-sweep-container path.sweep-line {
+            fill: none;
+            stroke: rgba(215, 235, 255, 0.4);
+            stroke-width: 1.5;
+        }
+
+        .radar-sweep-container path.sweep-glow {
+            fill: url(#sweepGradiant);
+            opacity: 0.25;
         }
 
         /* АНИМАЦИИ ВРАЩЕНИЯ */
@@ -162,7 +171,7 @@
     <!-- Главная рабочая зона радара -->
     <div class="radar-container">
         
-        <!-- Слой 3 (Задний фон: Слегка увеличен) -->
+        <!-- Слой 3 (Задний фон: Ореол) -->
         <svg class="layer-absolute circle-layer-3" viewBox="0 0 200 200">
             <path d="M 100, 2 C 140, 10 180, 25 198, 90 C 215, 155 150, 195 100, 198 C 50, 201 -5, 150 2, 90 C 10, 30 60, -5 100, 2 Z" />
         </svg>
@@ -177,7 +186,7 @@
             <path d="M 100, 5 C 150, 7 193, 50 195, 100 C 197, 150 150, 193 100, 195 C 50, 197 7, 150 5, 100 C 3, 50 50, 3 100, 5 Z" />
         </svg>
 
-        <!-- ПОДВИЖНЫЙ СЛОЙ: Искаженные окружности радара (Вращаются) -->
+        <!-- ПОДВИЖНЫЙ СЛОЙ: Искаженные окружности радара (Вращаются, белый 0.32) -->
         <svg class="layer-absolute radar-circles-moving" viewBox="0 0 200 200">
             <!-- Внешний контур (точная копия формы первого круга) -->
             <path d="M 100, 5 C 150, 7 193, 50 195, 100 C 197, 150 150, 193 100, 195 C 50, 197 7, 150 5, 100 C 3, 50 50, 3 100, 5 Z" />
@@ -189,14 +198,28 @@
             <path d="M 100, 65 C 118, 65 137, 82 138, 100 C 139, 118 118, 137 100, 138 C 82, 139 62, 118 63, 100 C 64, 82 82, 64 100, 65 Z" />
         </svg>
 
-        <!-- СТАТИЧНЫЙ СЛОЙ: Осевые линии (Не крутятся, жестко зафиксированы) -->
+        <!-- СТАТИЧНЫЙ СЛОЙ: Перекрестие (С микро-искажениями по кривым Безье, НЕ крутится) -->
         <svg class="layer-absolute radar-lines-static" viewBox="0 0 200 200">
-            <line x1="100" y1="12" x2="100" y2="188" />
-            <line x1="12" y1="100" x2="188" y2="100" />
+            <!-- Вертикальная ось с еле заметным изгибом влево-вправо -->
+            <path d="M 100, 12 Q 98, 70 101, 100 T 100, 188" />
+            <!-- Горизонтальная ось с еле заметным изгибом вверх-вниз -->
+            <path d="M 12, 100 Q 70, 102 100, 99 T 188, 100" />
         </svg>
 
-        <!-- Вращающийся сканирующий луч -->
-        <div class="layer-absolute radar-sweep"></div>
+        <!-- ДИНАМИЧЕСКИЙ СЛОЙ: Искаженный вращающийся луч -->
+        <svg class="layer-absolute radar-sweep-container" viewBox="0 0 200 200">
+            <defs>
+                <!-- Мягкий шлейф от затухания луча -->
+                <radialGradient id="sweepGradiant" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
+                    <stop offset="0%" stop-color="#006DF9" stop-opacity="0.5"/>
+                    <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+                </radialGradient>
+            </defs>
+            <!-- Шлейф, повторяющий волновой изгиб луча -->
+            <path class="sweep-glow" d="M 100,100 Q 115,60 100,5 C 130,15 150,50 100,100 Z" />
+            <!-- Сам луч, который слегка деформирован (изгибается по кривой "Q") вместо прямой линии -->
+            <path class="sweep-line" d="M 100, 100 Q 115, 60 100, 5" />
+        </svg>
 
     </div>
 
