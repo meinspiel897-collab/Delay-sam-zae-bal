@@ -30,7 +30,7 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 85vw; /* Почти на пол-экрана */
+            width: 85vw;
             max-width: 340px;
             aspect-ratio: 1 / 1;
             display: flex;
@@ -46,20 +46,20 @@
             transform-origin: center;
         }
 
-        /* Задний круг: чуть крупнее, прозрачнее, крутится по часовой стрелке с пульсацией */
+        /* Задний круг: акцентный 006DF9, чуть крупнее, прозрачнее, противоположное движение */
         .circle-back {
-            width: 112%;
-            height: 112%;
-            fill: #ffffff; /* Можно заменить на акцентный цвет, например #3b82f6 */
-            opacity: 0.03;
-            animation: rotateClockwise 20s linear infinite, pulseSlow 6s ease-in-out infinite;
+            width: 115%;
+            height: 115%;
+            fill: #006DF9;
+            opacity: 0.12;
+            animation: rotateClockwise 18s linear infinite, pulseSlow 5s ease-in-out infinite;
         }
 
-        /* Передний круг: основной, крутится против часовой стрелки */
+        /* Передний круг: акцентный 006DF9, основной */
         .circle-front {
-            fill: #ffffff; /* Акцентный цвет */
-            opacity: 0.06;
-            animation: rotateCounterClockwise 14s linear infinite;
+            fill: #006DF9;
+            opacity: 0.25;
+            animation: rotateCounterClockwise 12s linear infinite;
         }
 
         /* Анимации вращения */
@@ -73,57 +73,17 @@
             100% { transform: rotate(0deg); }
         }
 
-        /* Дополнительная мягкая пульсация для создания эффекта "живого" объема */
+        /* Мягкое дыхание контура */
         @keyframes pulseSlow {
             0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.04); }
-        }
-
-        /* Оригинальные анимации нижних волн */
-        .wave-container {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 120px;
-            pointer-events: none;
-        }
-
-        .wave-layer {
-            position: absolute;
-            bottom: 0;
-            width: 200%;
-            height: 100%;
-        }
-
-        .wave-back {
-            fill: #ffffff;
-            opacity: 0.02;
-            animation: waveMoveRight 30s ease-in-out infinite;
-        }
-
-        .wave-front {
-            fill: #ffffff;
-            opacity: 0.04;
-            animation: waveMoveLeft 24s ease-in-out infinite;
-        }
-
-        @keyframes waveMoveLeft {
-            0% { transform: translateX(0); }
-            50% { transform: translateX(-30%); }
-            100% { transform: translateX(0); }
-        }
-        @keyframes waveMoveRight {
-            0% { transform: translateX(-50%); }
-            50% { transform: translateX(-20%); }
-            100% { transform: translateX(-50%); }
+            50% { transform: scale(1.05); }
         }
     </style>
 </head>
 <body>
 
-    <!-- Заголовок остался строго на своем месте -->
-    <header class="w-full flex justify-center pt-8 z-10">
+    <!-- Заголовок в самом верху шапки (без экстремального вылета вверх) -->
+    <header class="w-full flex justify-center pt-4 z-10">
         <div class="flex items-center space-x-2.5">
             <img 
                 src="public/icons/logo.png" 
@@ -139,34 +99,29 @@
 
     <!-- Центрированный блок с волнообразными кругами -->
     <div class="circle-wave-container">
-        <!-- Задний круг (крупнее, противоположное движение) -->
+        <!-- Задний круг (8 выраженных изгибов контура) -->
         <svg class="circle-wave-layer circle-back" viewBox="0 0 200 200">
-            <!-- Специально деформированный контур круга с 4 волновыми пиками -->
-            <path d="M 100, 15 
-                     C 145, 10  185, 50  185, 100 
-                     C 190, 145 145, 182 100, 185 
-                     C 50,  190 12,  150 15,  100 
-                     C 10,  55  50,  20  100, 15 Z" />
+            <path d="M 100,10 
+                     C 130,5  145,35 165,45 
+                     C 185,55 195,80 190,110 
+                     C 185,140 155,160 140,175 
+                     C 125,190 85,195  65,180 
+                     C 45,165 40,145  25,130 
+                     C 10,115 5,85    15,65 
+                     C 25,45  55,35    70,15 
+                     C 80,5   85,12    100,10 Z" />
         </svg>
 
-        <!-- Передний основной круг -->
+        <!-- Передний основной круг (альтернативные глубокие изгибы для интерференции) -->
         <svg class="circle-wave-layer circle-front" viewBox="0 0 200 200">
-            <!-- Альтернативная деформация для создания асинхронного эффекта волн -->
-            <path d="M 100, 20 
-                     C 155, 15  180, 60  180, 100 
-                     C 180, 150 140, 175 100, 180 
-                     C 55,  185 25,  140 20,  100 
-                     C 15,  55  60,  25  100, 20 Z" />
-        </svg>
-    </div>
-
-    <!-- Океанский слой волн внизу экрана -->
-    <div class="wave-container">
-        <svg class="wave-layer wave-back" viewBox="0 0 1200 120" preserveAspectRatio="none">
-            <path d="M0,80 C150,110 350,50 500,80 C650,110 850,50 1000,80 C1150,110 1350,50 1500,80 L1500,120 L0,120 Z"></path>
-        </svg>
-        <svg class="wave-layer wave-front" viewBox="0 0 1200 120" preserveAspectRatio="none">
-            <path d="M0,70 C150,40 350,100 500,70 C650,40 850,100 1000,70 C1150,40 1350,100 1500,70 L1500,120 L0,120 Z"></path>
+            <path d="M 100,18 
+                     C 120,8  155,20  170,45 
+                     C 185,70 192,95  182,120 
+                     C 172,145 145,172 125,182 
+                     C 105,192 75,185  55,170 
+                     C 35,155 15,135  12,105 
+                     C 10,75  30,50    48,32 
+                     C 65,15  85,25    100,18 Z" />
         </svg>
     </div>
 
