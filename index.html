@@ -6,10 +6,9 @@
     <title>СамоСобой</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Inter', sans-serif !important;
@@ -18,13 +17,10 @@
             margin: 0;
             overflow: hidden;
             height: 100vh;
-            display: flex;
-            flex-direction: column;
             user-select: none;
             -webkit-user-select: none;
         }
 
-        /* ЗАГОЛОВОК: Выровнен строго по оси Y с нативными кнопками Telegram */
         header {
             position: absolute;
             top: var(--tg-safe-area-inset-top, env(safe-area-inset-top, 0px));
@@ -38,116 +34,92 @@
             pointer-events: none;
         }
 
-        /* ГЛАВНЫЙ КОНТЕЙНЕР (Базовый размер 75vw) */
-        .radar-container {
+        /* КРУПНЫЙ РАДАР (НОРМАЛЬНЫЙ РАЗМЕР, сдвинут оптимально вниз) */
+        .radar-box {
             position: absolute;
-            top: 50%; /* Вернули в центр */
+            top: 40%; 
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 75vw;
-            max-width: 320px;
+            width: 76vw;
+            height: 76vw; 
+            max-width: 310px;
+            max-height: 310px;
             aspect-ratio: 1 / 1;
-        }
-
-        /* БАЗОВЫЙ КЛАСС ДЛЯ ЦЕНТРИРОВАНИЯ И ВРАЩЕНИЯ СЛОЕВ */
-        .layer-absolute {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            transform-origin: center;
-            overflow: visible;
-        }
-
-        /* --- ВОЛНОВЫЕ КРУГИ --- */
-        /* Первый круг (Планета) */
-        .circle-layer-1 {
-            width: 100%; height: 100%;
-            fill: #004080; /* Темно-синий, космос/океан */
-            opacity: 0.9;
-            z-index: 1;
-            animation: rotateCounter 25s linear infinite;
-        }
-        /* Материки (Зеленые) */
-        .circle-layer-1-continents {
-            width: 100%; height: 100%;
-            fill: #4CAF50; /* Зеленый материк */
-            opacity: 0.7;
-            z-index: 2; /* Над планетой */
-            animation: rotateCounter 25s linear infinite; /* Та же анимация */
-        }
-        /* Второй круг (Пропорционально крупнее) */
-        .circle-layer-2 {
-            width: 120%; height: 120%; /* Крупнее, чем сейчас 114% */
-            fill: #006DF9; opacity: 0.35;
-            z-index: 1;
-            animation: rotateClock 18s linear infinite;
-        }
-        /* Третий круг (Самый крупный) */
-        .circle-layer-3 {
-            width: 130%; height: 130%; /* Крупнее, чем сейчас 128% */
-            fill: #006DF9; opacity: 0.15;
-            z-index: 1;
-            animation: rotateCounter 30s linear infinite;
-        }
-
-        /* --- СЕТКА РАДАРА (Светло-синий цвет, более прозрачный) --- */
-        .radar-grid {
-            width: 100%; height: 100%;
-            z-index: 2;
-            pointer-events: none;
-            /* Искажение материков и сетки точь-в-точь как у первого круга */
-            animation: rotateCounter 25s linear infinite;
-        }
-        .radar-grid path {
-            fill: none;
-            stroke: rgba(215, 235, 255, 0.15); /* Сине-белый и более прозрачный */
-            stroke-width: 1.2;
-        }
-        .radar-grid line {
-            stroke: rgba(215, 235, 255, 0.1);
-            stroke-width: 1;
-        }
-
-        /* --- ВРАЩАЮЩИЙСЯ ЛУЧ (Сине-белый фейд) --- */
-        .radar-sweep-box {
-            width: 100%; height: 100%;
-            z-index: 3;
-            pointer-events: none;
-            animation: sweepRotate 4s linear infinite;
-        }
-
-        /* --- ЛОТТИ КИТ (Тайминги) --- */
-        .lottie-whale-box {
-            width: 65%; /* Крупный, но не выходит за рамки */
-            height: 65%;
             z-index: 10;
+        }
+
+        .layer-center {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             display: flex;
             align-items: center;
             justify-content: center;
-            pointer-events: none;
-            animation: whaleFading 5s ease-in-out infinite;
         }
 
-        @keyframes whaleFading {
-            0% { opacity: 0; }
-            10% { opacity: 1; }  /* Быстрое появление за 0.5 сек (10% от 5 сек) */
-            70% { opacity: 1; }  /* Держится видимым 3 секунды (до 70%) */
-            80% { opacity: 0; }  /* Быстро исчезает за 0.5 сек (до 80%) */
-            100% { opacity: 0; } /* Остаток цикла спит в темноте */
+        /* --- ФОНОВЫЕ ОРГАНИЧЕСКИЕ СЛОИ --- */
+        .wave-1 { width: 100%; height: 100%; fill: #006DF9; opacity: 0.65; animation: rotCounter 24s linear infinite; }
+        .wave-2-new { width: 114%; height: 114%; fill: #006DF9; opacity: 0.26; animation: rotClock 18s linear infinite; }
+        .wave-3-new { width: 126%; height: 126%; fill: #006DF9; opacity: 0.10; animation: rotCounter 30s linear infinite; }
+
+        /* --- ИМПУЛЬСНЫЕ КОЛЬЦА --- */
+        .pulse-svg path {
+            fill: none;
+            stroke: rgba(215, 235, 255, 0.25);
+            stroke-width: 1.0;
+            transform-origin: 100px 100px;
+        }
+        .p-ring-1 { animation: sonar 3.5s cubic-bezier(0.1, 0.4, 0.2, 1) infinite; }
+        .p-ring-2 { animation: sonar 3.5s cubic-bezier(0.1, 0.4, 0.2, 1) infinite; animation-delay: 1.75s; }
+
+        /* --- Тонкие статические оси --- */
+        .axes-svg path { fill: none; stroke: rgba(215, 235, 255, 0.12); stroke-width: 1; }
+
+        /* --- ПРИГЛУШЕННЫЙ ЭЛЕГАНТНЫЙ ЛУЧ --- */
+        .radar-sweep-beam {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: conic-gradient(
+                from 0deg, 
+                transparent 60%, 
+                rgba(0, 109, 249, 0.02) 80%, 
+                rgba(0, 109, 249, 0.16) 96%, 
+                rgba(215, 235, 255, 0.38) 100%
+            );
+            animation: sweep 4s linear infinite;
+            transform-origin: center center;
         }
 
-        @keyframes rotateClock {
-            0% { transform: translate(-50%, -50%) rotate(0deg); }
-            100% { transform: translate(-50%, -50%) rotate(360deg); }
+        /* МАЛЕНЬКИЕ НЕ-СВЕТЯЩИЕСЯ ТОЧКИ С КИНЕМАТОГРАФИЧНЫМ ЗАТУХАНИЕМ */
+        .target-dot {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background-color: #DCEBFC;
+            border: 1px solid #0056C6;
+            border-radius: 50%;
+            opacity: 0;
+            transform: scale(0.7);
+            /* Сверхплавное исчезновение и появление (1 секунда) */
+            transition: opacity 1.0s cubic-bezier(0.25, 1, 0.5, 1), transform 0.9s cubic-bezier(0.25, 1, 0.5, 1);
+            z-index: 15;
         }
-        @keyframes rotateCounter {
-            0% { transform: translate(-50%, -50%) rotate(360deg); }
-            100% { transform: translate(-50%, -50%) rotate(0deg); }
+        .target-dot.active {
+            opacity: 0.95;
+            transform: scale(1);
         }
-        @keyframes sweepRotate {
-            0% { transform: translate(-50%, -50%) rotate(0deg); }
-            100% { transform: translate(-50%, -50%) rotate(360deg); }
+
+        /* АНИМАЦИИ */
+        @keyframes sweep { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes rotClock { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes rotCounter { 0% { transform: rotate(360deg); } 100% { transform: rotate(0deg); } }
+        @keyframes sonar {
+            0% { transform: scale(0); opacity: 0.6; }
+            70% { opacity: 0.2; }
+            100% { transform: scale(1.05); opacity: 0; }
         }
     </style>
 </head>
@@ -155,101 +127,154 @@
 
     <header>
         <div class="flex items-center space-x-2.5">
-            <img 
-                src="public/icons/logo.png" 
-                alt="Логотип" 
-                class="w-5 h-5 object-contain"
-                onerror="this.style.display='none'"
-            />
-            <h1 class="text-base font-semibold tracking-tight text-white uppercase">
-                СамоСобой
-            </h1>
+            <img src="public/icons/logo.png" alt="Логотип" class="w-5 h-5 object-contain" onerror="this.style.display='none'"/>
+            <h1 class="text-base font-semibold tracking-tight text-white">СамоСобой</h1>
         </div>
     </header>
 
-    <div class="radar-container">
+    <main class="w-full h-full relative">
         
-        <svg class="layer-absolute circle-layer-3" viewBox="0 0 200 200">
-            <path d="M 100, 2 C 140, 10 180, 25 198, 90 C 215, 155 150, 195 100, 198 C 50, 201 -5, 150 2, 90 C 10, 30 60, -5 100, 2 Z" />
-        </svg>
-
-        <svg class="layer-absolute circle-layer-2" viewBox="0 0 200 200">
-            <path d="M 100, 5 C 135, 2 190, 30 195, 100 C 200, 170 145, 198 100, 195 C 55, 192 2, 160 5, 100 C 8, 40 65, 8 100, 5 Z" />
-        </svg>
-
-        <svg class="layer-absolute circle-layer-1" viewBox="0 0 200 200">
-            <path d="M 100, 5 C 150, 7 193, 50 195, 100 C 197, 150 150, 193 100, 195 C 50, 197 7, 150 5, 100 C 3, 50 50, 3 100, 5 Z" />
-        </svg>
-
-        <svg class="layer-absolute circle-layer-1-continents" viewBox="0 0 200 200">
-            <path d="M 100, 15 C 120, 12 140, 25 145, 45 C 150, 65 130, 85 110, 80 C 90, 75 75, 55 80, 35 C 85, 15 100, 12 Z" />
-            <path d="M 100, 85 C 115, 82 135, 95 140, 115 C 145, 135 125, 155 105, 150 C 85, 145 70, 125 75, 105 C 80, 85 100, 82 Z" />
-            <path d="M 50, 60 C 60, 58 70, 65 72, 75 C 74, 85 64, 95 54, 92 C 44, 89 39, 79 41, 69 C 43, 59 50, 58 Z" />
-            <path d="M 150, 60 C 160, 58 170, 65 172, 75 C 174, 85 164, 95 154, 92 C 144, 89 139, 79 141, 69 C 143, 59 150, 58 Z" />
-        </svg>
-
-        <svg class="layer-absolute radar-grid" viewBox="0 0 200 200">
-            <path d="M 100, 5 C 150, 7 193, 50 195, 100 C 197, 150 150, 193 100, 195 C 50, 197 7, 150 5, 100 C 3, 50 50, 3 100, 5 Z" />
+        <div class="radar-box" id="radarZone">
             
-            <path d="M 100, 35 C 135, 36 165, 65 166, 100 C 167, 135 135, 165 100, 166 C 65, 167 34, 135 35, 100 C 36, 65 65, 34 100, 35 Z" stroke-dasharray="4 4" />
-            
-            <path d="M 100, 65 C 118, 65 137, 82 138, 100 C 139, 118 118, 137 100, 138 C 82, 139 62, 118 63, 100 C 64, 82 82, 64 100, 65 Z" />
-            
-            <path d="M 100, 12 Q 99, 70 100.5, 100 T 100, 188" />
-            <path d="M 12, 100 Q 70, 100.5 100, 99.5 T 188, 100" />
-        </svg>
+            <div class="layer-center z-1">
+                <svg class="wave-3-new" viewBox="0 0 200 200"><path d="M 100, 2 C 140, 10 180, 25 198, 90 C 215, 155 150, 195 100, 198 C 50, 201 -5, 150 2, 90 C 10, 30 60, -5 100, 2 Z" /></svg>
+            </div>
 
-        <svg class="layer-absolute radar-sweep-box" viewBox="0 0 200 200">
-            <defs>
-                <clipPath id="radarClip">
-                    <path d="M 100, 5 C 150, 7 193, 50 195, 100 C 197, 150 150, 193 100, 195 C 50, 197 7, 150 5, 100 C 3, 50 50, 3 100, 5 Z" />
-                </clipPath>
-            </defs>
-            <g clip-path="url(#radarClip)">
-                <foreignObject x="0" y="0" width="200" height="200">
-                    <div xmlns="http://www.w3.org/1999/xhtml" style="width:100%; height:100%; border-radius:50%; background: conic-gradient(from 0deg, transparent 65%, rgba(215, 235, 255, 0.15) 96%, rgba(200, 230, 255, 0.95) 100%); width:100%; height:100%;"></div>
-                </foreignObject>
-            </g>
-        </svg>
+            <div class="layer-center z-2">
+                <svg class="wave-2-new" viewBox="0 0 200 200"><path d="M 100, 5 C 135, 2 190, 30 195, 100 C 200, 170 145, 198 100, 195 C 55, 192 2, 160 5, 100 C 8, 40 65, 8 100, 5 Z" /></svg>
+            </div>
 
-        <div class="layer-absolute lottie-whale-box">
-            <lottie-player 
-                src="public/gifs/whale.json" 
-                background="transparent" 
-                speed="1" 
-                loop 
-                autoplay
-                style="width: 100%; height: 100%;">
-            </lottie-player>
+            <div class="layer-center z-3">
+                <svg class="wave-1" viewBox="0 0 200 200"><path d="M 100, 5 C 150, 7 193, 50 195, 100 C 197, 150 150, 193 100, 195 C 50, 197 7, 150 5, 100 C 3, 50 50, 3 100, 5 Z" /></svg>
+            </div>
+
+            <div class="layer-center z-4 pointer-events-none">
+                <svg class="pulse-svg w-full h-full" viewBox="0 0 200 200">
+                    <path class="p-ring-1" d="M 100, 5 C 150, 7 193, 50 195, 100 C 197, 150 150, 193 100, 195 C 50, 197 7, 150 5, 100 C 3, 50 50, 3 100, 5 Z" />
+                    <path class="p-ring-2" d="M 100, 5 C 150, 7 193, 50 195, 100 C 197, 150 150, 193 100, 195 C 50, 197 7, 150 5, 100 C 3, 50 50, 3 100, 5 Z" />
+                </svg>
+            </div>
+
+            <div class="layer-center z-5 pointer-events-none">
+                <svg class="axes-svg w-full h-full" viewBox="0 0 200 200">
+                    <path d="M 100, 12 Q 99, 70 100.5, 100 T 100, 188" />
+                    <path d="M 12, 100 Q 70, 100.5 100, 99.5 T 188, 100" />
+                </svg>
+            </div>
+
+            <div class="layer-center z-10 pointer-events-none">
+                <div class="radar-sweep-beam" id="beamElement"></div>
+            </div>
+
+            <div data-quad="1-3" class="target-dot" style="top: 22%; left: 64%;"></div>
+            <div data-quad="1-3" class="target-dot" style="top: 36%; left: 74%;"></div>
+            <div data-quad="1-3" class="target-dot" style="top: 66%; left: 26%;"></div>
+            <div data-quad="1-3" class="target-dot" style="top: 76%; left: 38%;"></div>
+            
+            <div data-quad="2-4" class="target-dot" style="top: 74%; left: 68%;"></div>
+            <div data-quad="2-4" class="target-dot" style="top: 62%; left: 78%;"></div>
+            <div data-quad="2-4" class="target-dot" style="top: 28%; left: 26%;"></div>
+            <div data-quad="2-4" class="target-dot" style="top: 20%; left: 44%;"></div>
+
         </div>
 
-    </div>
+        <div class="absolute bottom-[15px] left-[15px] right-[15px] h-[275px] bg-[#1C1C1E] rounded-[28px] border-none p-4 flex flex-col justify-between z-20 shadow-2xl overflow-hidden select-none">
+            
+            <div class="w-full bg-white/[0.04] rounded-full p-1 flex relative items-center h-11">
+                <div id="chooser-bg" class="absolute inset-y-1 left-1 w-[calc(50%-4px)] bg-white/[0.09] backdrop-blur-xl rounded-full z-0 transition-transform duration-300 ease-[cubic-bezier(0.25,1,0.5,1)]"></div>
+                
+                <button onclick="switchTab('ships', this)" class="flex-1 h-full relative z-10 text-[13.5px] font-semibold tracking-tight text-white text-center">
+                    Кораблики
+                </button>
+                <button onclick="switchTab('friends', this)" class="flex-1 h-full relative z-10 text-[13.5px] font-semibold tracking-tight text-white/30 text-center">
+                    Друзья (0)
+                </button>
+            </div>
 
-    <div class="w-full text-center mt-glass py-6 px-12 z-20" style="position: absolute; top: calc(50% + 200px); left: 50%; transform: translateX(-50%);">
-        <p class="text-sm font-medium leading-relaxed" style="opacity: 0.85;">
-            Самое время поймать чей-нибудь кораблик! Сейчас в океане 999 дрейфующих бортов, какой достанешь ты?
-        </p>
-    </div>
+            <div class="flex-1 flex items-center justify-center px-2 py-2">
+                <p class="text-[14px] leading-relaxed font-medium text-white/80 text-center">
+                    Самое время поймать чей-нибудь кораблик! Сейчас в океане 
+                    <span class="inline-flex items-center justify-center bg-white/20 text-white px-[6px] py-[1.5px] mx-[2px] rounded-full font-bold text-[13px] tracking-wide" style="transform: translateY(-0.5px);">999</span> 
+                    дрейфующих бортов, какой достанешь ты?
+                </p>
+            </div>
+            
+            <button class="w-full py-3.5 px-6 rounded-full text-[15px] font-semibold tracking-wide transition-all active:scale-[0.98] bg-[#006DF9] text-white bg-[--tg-theme-button-color] text-[--tg-theme-button-text-color]">
+                Поймать что-нибудь
+            </button>
+        </div>
 
-    <div class="fixed bottom-glass left-glass right-glass z-20">
-        <button class="w-full p-4 rounded-xl text-lg font-bold bg-[#006DF9] text-white bg-[--tg-theme-button-color] text-[--tg-theme-button-text-color]">
-            Поймать что-нибудь
-        </button>
-    </div>
+    </main>
 
     <script>
-        const tg = window.Telegram.WebApp;
-        tg.ready();
-        
-        // Разворачиваем и запрашиваем FullScreen (для новых версий TWA)
-        tg.expand();
-        if (tg.requestFullscreen) {
-            tg.requestFullscreen();
+        // Интеграция Telegram WebApp
+        const tg = window.Telegram?.WebApp;
+        if (tg) {
+            tg.ready();
+            tg.expand();
+            if (tg.requestFullscreen) tg.requestFullscreen();
+            tg.setHeaderColor('#000000');
+            tg.setBackgroundColor('#000000');
         }
-        
-        // Перекрашиваем верхний и нижний системные бары в черный
-        tg.setHeaderColor('#000000');
-        tg.setBackgroundColor('#000000');
+
+        // Логика кастомного Choose-bar
+        function switchTab(tab, btn) {
+            if (tg?.HapticFeedback) tg.HapticFeedback.impactOccurred("light");
+            
+            const bg = document.getElementById('chooser-bg');
+            const buttons = btn.parentNode.querySelectorAll('button');
+            
+            buttons.forEach(b => {
+                b.classList.remove('text-white');
+                b.classList.add('text-white/30');
+            });
+            
+            btn.classList.remove('text-white/30');
+            btn.classList.add('text-white');
+            
+            if (tab === 'ships') {
+                bg.style.transform = 'translateX(0%)';
+            } else {
+                const containerWidth = btn.parentNode.offsetWidth;
+                const offset = (containerWidth / 2) - 6;
+                bg.style.transform = `translateX(${offset}px)`;
+            }
+        }
+
+        // Селекторы для поочередных групп точек
+        const group13 = document.querySelectorAll('[data-quad="1-3"]');
+        const group24 = document.querySelectorAll('[data-quad="2-4"]');
+
+        const animationDuration = 4000; // 4 секунды круг
+        const startTime = performance.now();
+
+        function radarScannerLoop(timestamp) {
+            const elapsed = (timestamp - startTime) % animationDuration;
+            const angle = (elapsed / animationDuration) * 360;
+
+            // Логика: делим круг на 2 основные фазы прохода осей радара
+            // Фаза А: Луч идет по 1-й и 3-й четвертям (0-90 град и 180-270 град)
+            // Фаза Б: Луч идет по 2-й и 4-й четвертям (90-180 град и 270-360 град)
+            
+            const isPhase13 = (angle >= 0 && angle < 90) || (angle >= 180 && angle < 270);
+
+            if (isPhase13) {
+                // Плавно зажигаем 1-3 четверти
+                group13.forEach(dot => dot.classList.add('active'));
+                // Плавно растворяем в темноте 2-4 четверти
+                group24.forEach(dot => dot.classList.remove('active'));
+            } else {
+                // Плавно зажигаем 2-4 четверти
+                group24.forEach(dot => dot.classList.add('active'));
+                // Плавно растворяем в темноте 1-3 четверти
+                group13.forEach(dot => dot.classList.remove('active'));
+            }
+
+            requestAnimationFrame(radarScannerLoop);
+        }
+
+        // Плавный запуск сканирования
+        requestAnimationFrame(radarScannerLoop);
     </script>
 </body>
 </html>
