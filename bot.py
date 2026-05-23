@@ -1,3 +1,4 @@
+python
 import os
 import logging
 import asyncio
@@ -79,14 +80,14 @@ def get_final_keyboard():
     # Располагаем две кнопки в один ряд (по две в ряду)
     builder.button(text="⛵️ Отправить кораблик", callback_data="send_boat")
     builder.button(text="📱 Открыть приложение", web_app=types.WebAppInfo(url=MINI_APP_URL))
-    builder.adjust(2)  # Цифра 2 указывает aiogram расположить кнопки горизонтально в ряд
+    builder.adjust(2)  # Расположить горизонтально по 2 в ряд
     return builder.as_markup()
 
 # --- ОБРАБОТЧИКИ СОБЫТИЙ БОТА ---
 
 @dp.message(Command("start"))
 async def cmd_start(message: types.Message):
-    safe_name = html.escape(message.from_user.first_name)
+    safe_name = html.escape(message.from_user.first_name or "Путешественник")
     welcome_text = (
         f"Привет, {safe_name}! 👋\n\n"
         "Рады видеть тебя на борту! <b>СамоСобой</b> — это уютный океан, "
@@ -142,23 +143,27 @@ async def process_step_3(callback: types.CallbackQuery):
 async def process_finish(callback: types.CallbackQuery):
     chat_id = callback.message.chat.id
     # Безопасно экранируем имя пользователя
-    safe_name = html.escape(callback.from_user.first_name)
+    safe_name = html.escape(callback.from_user.first_name or "Друг")
     
-    # Удаляем текущее интерактивное сообщение опроса
+    # Сначала закрываем часы ожидания кнопки
+    await callback.answer()
+
+    # 1. Удаляем текущее интерактивное сообщение опроса
     try:
         await callback.message.delete()
     except Exception as e:
         logging.error(f"Не удалось удалить сообщение: {e}")
         
-    await callback.answer()
-
-    # Отправляем стикер кита из твоего лога
+    # 2. Отправляем стикер кита из твоего лога
     try:
         await bot.send_sticker(chat_id=chat_id, sticker=WHALE_STICKER_ID)
     except Exception as e:
         logging.error(f"Не удалось отправить стикер: {e}")
 
-    # Финальное поздравление и пролог с красивым HTML-blockquote блоком
+    # 3. Добавим небольшую паузу в 1 секунду, чтобы избежать конфликтов доставки сообщений в Telegram
+    await asyncio.sleep(1)
+
+    # 4. Финальное поздравление и пролог с красивым HTML-blockquote блоком
     final_text = (
         f"С регистрацией, {safe_name}! 🎉\n\n"
         "Отправь свой первый кораблик в плавание через приложение или с помощью бота, если так удобнее 😉\n\n"
@@ -171,17 +176,20 @@ async def process_finish(callback: types.CallbackQuery):
         "</blockquote>"
     )
     
-    await bot.send_message(
-        chat_id=chat_id,
-        text=final_text,
-        reply_markup=get_final_keyboard(),
-        parse_mode="HTML"
-    )
+    try:
+        await bot.send_message(
+            chat_id=chat_id,
+            text=final_text,
+            reply_markup=get_final_keyboard(),
+            parse_mode="HTML"
+        )
+    except Exception as e:
+        logging.error(f"Ошибка при отправке финального сообщения: {e}")
 
 @dp.callback_query(F.data == "send_boat")
 async def process_send_boat(callback: types.CallbackQuery):
     await callback.message.answer(
-        "Напишите текст вашей мысли (до 280 символов), и я отправлю её в плавание. ⛵️"
+        "Напиши текст твоей мысли (до 280 символов), и я отправлю её в плавание. ⛵️"
     )
     await callback.answer()
 
@@ -192,8 +200,15 @@ async def main():
     flask_thread = threading.Thread(target=run_flask, daemon=True)
     flask_thread.start()
     
-    # Сбрасываем старые вебхуки и запускаем поллинг сообщений
+    # 1. Перед стартом сбрасываем вебхуки и удаляем зависшие апдейты
+    logging.info("Очистка старых вебхуков и зависших запросов...")
     await bot.delete_webhook(drop_pending_updates=True)
+    
+    # 2. Небольшая пауза, чтобы старый инстанс на Render успел корректно завершиться
+    await asyncio.sleep(2)
+    
+    # 3. Запускаем поллинг сообщений
+    logging.info("Запуск поллинга сообщений бота...")
     await dp.start_polling(bot)
 
 if __name__ == "__main__":
