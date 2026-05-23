@@ -21,7 +21,6 @@
             -webkit-user-select: none;
         }
 
-        /* Шапка приложения */
         header {
             position: absolute;
             top: var(--tg-safe-area-inset-top, env(safe-area-inset-top, 0px));
@@ -35,10 +34,10 @@
             pointer-events: none;
         }
 
-        /* Контейнер радара (строго по центру экрана) */
+        /* Контейнер радара зафиксирован */
         .radar-container {
             position: absolute;
-            top: 48%; /* Чуть выше идеального центра оптически */
+            top: 44%; 
             left: 50%;
             transform: translate(-50%, -50%);
             width: 60vw;
@@ -49,7 +48,6 @@
             z-index: 10;
         }
 
-        /* Центрирование слоев внутри радара */
         .layer-absolute {
             position: absolute;
             top: 50%;
@@ -96,13 +94,8 @@
             transform-origin: 100px 100px;
         }
         
-        .ring-pulse-1 {
-            animation: sonarPing 3.2s cubic-bezier(0.1, 0.4, 0.2, 1) infinite;
-        }
-        .ring-pulse-2 {
-            animation: sonarPing 3.2s cubic-bezier(0.1, 0.4, 0.2, 1) infinite;
-            animation-delay: 1.6s;
-        }
+        .ring-pulse-1 { animation: sonarPing 3.2s cubic-bezier(0.1, 0.4, 0.2, 1) infinite; }
+        .ring-pulse-2 { animation: sonarPing 3.2s cubic-bezier(0.1, 0.4, 0.2, 1) infinite; animation-delay: 1.6s; }
 
         /* --- СТАТИЧНЫЙ КРЕСТ --- */
         .radar-lines-static {
@@ -117,20 +110,31 @@
             stroke-width: 1;
         }
 
-        /* --- ВРАЩЕНИЕ ЛУЧА ИЗ ЦЕНТРА --- */
-        .sweep-spinner {
+        /* --- ТОЧНЫЙ ЛУЧ ИЗ ЦЕНТРА (Вращение SVG-ноды) --- */
+        .radar-sweep-svg {
             width: 100%;
             height: 100%;
-            border-radius: 50%;
-            background: conic-gradient(
-                from 0deg, 
-                transparent 40%, 
-                rgba(0, 109, 249, 0.12) 75%,
-                rgba(215, 235, 255, 0.35) 99%,
-                rgba(215, 235, 255, 0.7) 100%
-            );
+            z-index: 4;
+            pointer-events: none;
             animation: sweepRotate 4s linear infinite;
-            transform-origin: 50% 50%;
+        }
+
+        /* --- МАЛЕНЬКИЕ ЯРКИЕ ТОЧКИ --- */
+        .radar-dots-layer {
+            width: 100%;
+            height: 100%;
+            z-index: 5;
+            pointer-events: none;
+        }
+        
+        .radar-dot {
+            fill: #ffffff;
+            opacity: 0;
+            transition: opacity 0.4s ease-in-out;
+        }
+        
+        .radar-dot.visible {
+            opacity: 0.95;
         }
 
         /* АНИМАЦИИ */
@@ -149,8 +153,8 @@
             100% { transform: translate(-50%, -50%) rotate(0deg); }
         }
         @keyframes sweepRotate {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            0% { transform: translate(-50%, -50%) rotate(0deg); }
+            100% { transform: translate(-50%, -50%) rotate(360deg); }
         }
     </style>
 </head>
@@ -171,23 +175,23 @@
         </div>
     </header>
 
-    <!-- Основной слой (Абсолютное центрирование радара) -->
+    <!-- Главная рабочая область -->
     <main class="w-full h-full relative">
         
-        <!-- Зона радара (остается на месте) -->
+        <!-- Радар (зафиксирован на месте) -->
         <div class="radar-container">
             
-            <!-- Слой 3 (Задний фон) -->
+            <!-- Слой 3 -->
             <svg class="layer-absolute circle-layer-3" viewBox="0 0 200 200">
                 <path d="M 100, 2 C 140, 10 180, 25 198, 90 C 215, 155 150, 195 100, 198 C 50, 201 -5, 150 2, 90 C 10, 30 60, -5 100, 2 Z" />
             </svg>
 
-            <!-- Слой 2 (Средний) -->
+            <!-- Слой 2 -->
             <svg class="layer-absolute circle-layer-2" viewBox="0 0 200 200">
                 <path d="M 100, 5 C 135, 2 190, 30 195, 100 C 200, 170 145, 198 100, 195 C 55, 192 2, 160 5, 100 C 8, 40 65, 8 100, 5 Z" />
             </svg>
 
-            <!-- Слой 1 (Передний основной круг) -->
+            <!-- Слой 1 (Основной) -->
             <svg class="layer-absolute circle-layer-1" viewBox="0 0 200 200">
                 <path d="M 100, 5 C 150, 7 193, 50 195, 100 C 197, 150 150, 193 100, 195 C 50, 197 7, 150 5, 100 C 3, 50 50, 3 100, 5 Z" />
             </svg>
@@ -204,32 +208,36 @@
                 <path d="M 12, 100 Q 70, 100.5 100, 99.5 T 188, 100" />
             </svg>
 
-            <!-- ВРАЩАЮЩИЙСЯ ЛУЧ (Вращается сам градиент внутри статической маски деформированного круга) -->
-            <svg class="layer-absolute" viewBox="0 0 200 200" style="width:100%; height:100%; z-index:4; pointer-events:none;">
+            <!-- СЛОЙ ДЛЯ СЛУЧАЙНЫХ ТОЧЕК -->
+            <svg class="layer-absolute radar-dots-layer" viewBox="0 0 200 200" id="dotsLayer"></svg>
+
+            <!-- ВРАЩАЮЩИЙСЯ ЛУЧ (Маскирован по форме 1-го круга, вращается идеально из центра 100,100) -->
+            <svg class="layer-absolute radar-sweep-svg" viewBox="0 0 200 200">
                 <defs>
-                    <clipPath id="radarClip">
+                    <clipPath id="radarMask">
                         <path d="M 100, 5 C 150, 7 193, 50 195, 100 C 197, 150 150, 193 100, 195 C 50, 197 7, 150 5, 100 C 3, 50 50, 3 100, 5 Z" />
                     </clipPath>
                 </defs>
-                <g clip-path="url(#radarClip)">
+                <g clip-path="url(#radarMask)">
                     <foreignObject x="0" y="0" width="200" height="200">
-                        <div xmlns="http://www.w3.org/1999/xhtml" class="sweep-spinner"></div>
+                        <!-- Чистый CSS конический шлейф из центра -->
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="width:100%; height:100%; border-radius:50%; background: conic-gradient(from 0deg, transparent 40%, rgba(0, 109, 249, 0.15) 75%, rgba(215, 235, 255, 0.38) 99%, rgba(215, 235, 255, 0.75) 100%);"></div>
                     </foreignObject>
                 </g>
             </svg>
 
         </div>
 
-        <!-- Нижняя темная плашка (Абсолютное позиционирование с отступами по 15px) -->
-        <div class="absolute bottom-[15px] left-[15px] right-[15px] bg-[#1C1C1E] rounded-[24px] p-[15px] pt-[20px] flex flex-col z-20 shadow-xl border border-white/5">
-            <p class="text-[14px] leading-relaxed font-medium text-white/85 text-center px-1 mb-5">
+        <!-- Нижняя плашка (Полностью круглые углы, без аутлайна, отступы по 15px) -->
+        <div class="absolute bottom-[15px] left-[15px] right-[15px] bg-[#1C1C1E] rounded-full p-[15px] pb-[15px] pt-[22px] flex flex-col z-20 shadow-xl">
+            <p class="text-[13.5px] leading-relaxed font-medium text-white/85 text-center px-8 mb-4">
                 Самое время поймать чей-нибудь кораблик! Сейчас в океане 
-                <!-- Выделенный бейдж 999: Фон 0.2, полностью круглые углы, 5px по краям -->
-                <span class="inline-flex items-center justify-center bg-white/20 text-white/95 px-[5px] py-[2px] mx-[2px] rounded-full font-semibold tracking-wide" style="transform: translateY(-1px);">999</span> 
+                <!-- Полностью круглый и чуть более яркий бейдж цифр -->
+                <span class="inline-flex items-center justify-center bg-white/25 text-white px-[5px] py-[1.5px] mx-[2px] rounded-full font-semibold tracking-wide" style="transform: translateY(-1px);">999</span> 
                 дрейфующих бортов, какой достанешь ты?
             </p>
             
-            <!-- Кнопка Telegram (С круглыми углами, прижата вниз, 15px отступа обеспечивает родительский padding) -->
+            <!-- Кнопка Telegram (Внутри плашки, 15px от низа обеспечено падингом) -->
             <button class="w-full py-3.5 px-6 rounded-full text-[15px] font-semibold tracking-wide transition-transform active:scale-[0.98] bg-[#006DF9] text-white bg-[--tg-theme-button-color] text-[--tg-theme-button-text-color]">
                 Поймать что-нибудь
             </button>
@@ -240,14 +248,56 @@
     <script>
         const tg = window.Telegram.WebApp;
         tg.ready();
-        
         tg.expand();
-        if (tg.requestFullscreen) {
-            tg.requestFullscreen();
-        }
-        
+        if (tg.requestFullscreen) tg.requestFullscreen();
         tg.setHeaderColor('#000000');
         tg.setBackgroundColor('#000000');
+
+        // Логика плавного появления маленьких ярких точек по четвертям радара
+        const dotsLayer = document.getElementById('dotsLayer');
+        
+        // Диапазоны координат для 4-х разных четвертей (внутри первого круга)
+        const quarters = [
+            { minX: 110, maxX: 160, minY: 40,  maxY: 90  }, // Верхняя правая
+            { minX: 110, maxX: 160, minY: 110, maxY: 160 }, // Нижняя правая
+            { minX: 40,  maxX: 90,  minY: 110, maxY: 160 }, // Нижняя левая
+            { minX: 40,  maxX: 90,  minY: 40,  maxY: 90  }  // Верхняя левая
+        ];
+
+        function spawnDots() {
+            // Очищаем старые угасшие точки
+            dotsLayer.innerHTML = '';
+            
+            // Случайное количество точек от 1 до 3 на весь круг
+            const dotsCount = Math.floor(Math.random() * 3) + 1;
+            
+            // Перемешиваем четверти, чтобы точки всегда падали в разные сектора
+            const shuffledQuarters = [...quarters].sort(() => 0.5 - Math.random());
+            
+            for (let i = 0; i < dotsCount; i++) {
+                const q = shuffledQuarters[i];
+                const x = Math.floor(Math.random() * (q.maxX - q.minX + 1)) + q.minX;
+                const y = Math.floor(Math.random() * (q.maxY - q.minY + 1)) + q.minY;
+                
+                // Создаем маленькую яркую точку
+                const dot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                dot.setAttribute("cx", x);
+                dot.setAttribute("cy", y);
+                dot.setAttribute("r", "1.5"); // Маленький радиус (диаметр 3px)
+                dot.setAttribute("class", "radar-dot");
+                
+                dotsLayer.appendChild(dot);
+                
+                // Плавно проявляем через микротаймаут
+                setTimeout(() => {
+                    dot.classList.add('visible');
+                }, i * 200);
+            }
+        }
+
+        // Запускаем цикл обновления точек (каждые 4 секунды — в такт прохода луча)
+        spawnDots();
+        setInterval(spawnDots, 4000);
     </script>
 </body>
 </html>
