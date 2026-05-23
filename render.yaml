@@ -1,0 +1,18 @@
+yaml
+# Файл Blueprint для автоматического развертывания Web Service на Render
+services:
+  - type: web
+    name: samosoboy-web-bot
+    env: python
+    # Установка зависимостей из requirements.txt
+    buildCommand: pip install -r requirements.txt
+    # Команда для запуска приложения
+    startCommand: python bot.py
+    # Используем бесплатный тариф (free)
+    plan: free
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.10.0
+      # Токен от вашего бота. Render попросит указать его при создании проекта
+      - key: TOKEN
+        sync: false
