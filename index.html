@@ -6,7 +6,6 @@
     <title>СамоСобой</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -38,23 +37,20 @@
             pointer-events: none;
         }
 
-        /* 
-           ГЛАВНЫЙ КОНТЕЙНЕР (Уменьшен в размерах). 
-           Жестко задан height для обхода бага со схлопыванием в полосу.
-        */
+        /* Главный рабочий контейнер радара */
         .radar-container {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
             width: 60vw;
-            height: 60vw; /* Защита от схлопывания WebView */
+            height: 60vw;
             max-width: 260px;
             max-height: 260px;
             aspect-ratio: 1 / 1;
         }
 
-        /* БАЗОВЫЙ КЛАСС: Строгое абсолютное центрирование для всех слоев */
+        /* БАЗОВЫЙ КЛАСС: Абсолютное центрирование для всех слоев */
         .layer-absolute {
             position: absolute;
             top: 50%;
@@ -64,7 +60,7 @@
             overflow: visible;
         }
 
-        /* --- ВОЛНОВЫЕ КРУГИ (Основной цвет #006DF9) --- */
+        /* --- ВОЛНОВЫЕ КРУГИ (#006DF9) --- */
         .circle-layer-1 {
             width: 100%; height: 100%;
             fill: #006DF9; opacity: 0.9;
@@ -72,55 +68,52 @@
             animation: rotateCounter 25s linear infinite;
         }
         .circle-layer-2 {
-            width: 114%; height: 114%;
+            width: 112%; height: 112%;
             fill: #006DF9; opacity: 0.45;
             z-index: 1;
             animation: rotateClock 18s linear infinite;
         }
         .circle-layer-3 {
-            width: 128%; height: 128%;
+            width: 120%; height: 120%; /* Сделан аккуратнее и чуть меньше */
             fill: #006DF9; opacity: 0.15;
             z-index: 1;
             animation: rotateCounter 30s linear infinite;
         }
 
-        /* --- СЕТКА РАДАРА (Светло-голубой цвет #80BFFF для контраста) --- */
-        .radar-grid {
+        /* 
+           --- ИСКАЖЕННАЯ СЕТКА РАДАРА ---
+           Связана анимацией с первым кругом (z-index: 2), чтобы двигаться синхронно.
+           Цвет изменен на мягкий акцентный #006DF9 с прозрачностью.
+        */
+        .radar-grid-organic {
             width: 100%; height: 100%;
             z-index: 2;
             pointer-events: none;
+            animation: rotateCounter 25s linear infinite; /* Та же скорость, что и у круга-1 */
+        }
+        .radar-grid-organic path, .radar-grid-organic line {
+            stroke: #006DF9;
+            fill: none;
         }
 
-        /* --- ЛУЧ РАДАРА --- */
+        /* --- ВРАЩАЮЩИЙСЯ ЛУЧ РАДАРА --- */
         .radar-sweep {
-            width: 95%; height: 95%; /* Точно вписан во внешний круг сетки */
+            width: 96%; height: 96%;
             border-radius: 50%;
-            /* Градиент из прозрачного в светло-голубой с белым краем */
+            /* Градиент в тон основного цвета, приглушен по яркости */
             background: conic-gradient(
                 from 0deg, 
-                rgba(128, 191, 255, 0) 60%, 
-                rgba(128, 191, 255, 0.2) 90%, 
-                rgba(128, 191, 255, 0.7) 99%, 
-                rgba(255, 255, 255, 1) 100%
+                rgba(0, 109, 249, 0) 50%, 
+                rgba(0, 109, 249, 0.08) 85%, 
+                rgba(0, 109, 249, 0.4) 98%, 
+                rgba(0, 109, 249, 0.7) 100%
             );
             z-index: 3;
             pointer-events: none;
             animation: sweepRotate 4s linear infinite;
         }
 
-        /* --- LOTTIE КИТ --- */
-        .lottie-whale-box {
-            width: 65%; 
-            height: 65%;
-            z-index: 10;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            pointer-events: none;
-            animation: whaleRadarPing 5s ease-in-out infinite;
-        }
-
-        /* АНИМАЦИИ (с учетом базового translate(-50%, -50%)) */
+        /* СИНХРОННЫЕ АНИМАЦИИ ВРАЩЕНИЯ */
         @keyframes rotateClock {
             0% { transform: translate(-50%, -50%) rotate(0deg); }
             100% { transform: translate(-50%, -50%) rotate(360deg); }
@@ -133,20 +126,11 @@
             0% { transform: translate(-50%, -50%) rotate(0deg); }
             100% { transform: translate(-50%, -50%) rotate(360deg); }
         }
-
-        /* Тайминг Кита: Максимальная прозрачность теперь 0.75 */
-        @keyframes whaleRadarPing {
-            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.95); }
-            10% { opacity: 0.75; transform: translate(-50%, -50%) scale(1); }
-            70% { opacity: 0.75; transform: translate(-50%, -50%) scale(1); }
-            80% { opacity: 0; transform: translate(-50%, -50%) scale(0.95); }
-            100% { opacity: 0; transform: translate(-50%, -50%) scale(0.95); }
-        }
     </style>
 </head>
 <body>
 
-    <!-- Шапка центрируется ровно по высоте нативных кнопок -->
+    <!-- Шапка с мягким регистром текста -->
     <header>
         <div class="flex items-center space-x-2.5">
             <img 
@@ -155,55 +139,51 @@
                 class="w-5 h-5 object-contain"
                 onerror="this.style.display='none'"
             />
-            <h1 class="text-base font-semibold tracking-tight text-white uppercase">
+            <h1 class="text-base font-semibold tracking-tight text-white">
                 СамоСобой
             </h1>
         </div>
     </header>
 
-    <!-- Главная рабочая зона радара -->
+    <!-- Главная рабочая зона -->
     <div class="radar-container">
         
-        <!-- Слой 3 (Задний фон: Размашистые волны) -->
+        <!-- Слой 3 (Задний: Компактные волновые ушки) -->
         <svg class="layer-absolute circle-layer-3" viewBox="0 0 200 200">
             <path d="M 100, 2 C 140, 10 180, 25 198, 90 C 215, 155 150, 195 100, 198 C 50, 201 -5, 150 2, 90 C 10, 30 60, -5 100, 2 Z" />
         </svg>
 
-        <!-- Слой 2 (Средний: Средние волны) -->
+        <!-- Слой 2 (Средний) -->
         <svg class="layer-absolute circle-layer-2" viewBox="0 0 200 200">
             <path d="M 100, 5 C 135, 2 190, 30 195, 100 C 200, 170 145, 198 100, 195 C 55, 192 2, 160 5, 100 C 8, 40 65, 8 100, 5 Z" />
         </svg>
 
-        <!-- Слой 1 (Передний: Плотный, почти идеальный круг) -->
+        <!-- Слой 1 (Передний: Плотный живой круг) -->
         <svg class="layer-absolute circle-layer-1" viewBox="0 0 200 200">
             <path d="M 100, 5 C 150, 7 193, 50 195, 100 C 197, 150 150, 193 100, 195 C 50, 197 7, 150 5, 100 C 3, 50 50, 3 100, 5 Z" />
         </svg>
 
-        <!-- Статичная разметка радара (Светло-голубой цвет) -->
-        <svg class="layer-absolute radar-grid" viewBox="0 0 200 200">
-            <!-- 3 концентрических кольца -->
-            <circle cx="100" cy="100" r="95" fill="none" stroke="#80BFFF" stroke-width="1.5" opacity="0.9"/>
-            <circle cx="100" cy="100" r="65" fill="none" stroke="#80BFFF" stroke-width="1" opacity="0.5" stroke-dasharray="4 4"/>
-            <circle cx="100" cy="100" r="35" fill="none" stroke="#80BFFF" stroke-width="1" opacity="0.5"/>
-            <!-- Визирные оси -->
-            <line x1="100" y1="5" x2="100" y2="195" stroke="#80BFFF" stroke-width="1" opacity="0.4"/>
-            <line x1="5" y1="100" x2="195" y2="100" stroke="#80BFFF" stroke-width="1" opacity="0.4"/>
+        <!-- 
+            НОВАЯ ЖИВАЯ СЕТКА РАДАРА: 
+            Внутренние элементы полностью унаследовали искаженную траекторию внешнего контура.
+        -->
+        <svg class="layer-absolute radar-grid-organic" viewBox="0 0 200 200">
+            <!-- Внешний контур (Дублирует форму круга-1, stroke-width 1.5) -->
+            <path d="M 100, 5 C 150, 7 193, 50 195, 100 C 197, 150 150, 193 100, 195 C 50, 197 7, 150 5, 100 C 3, 50 50, 3 100, 5 Z" stroke-width="1.5" opacity="0.7" />
+            
+            <!-- Средний контур (Пропорционально уменьшенная копия той же волны, пунктир) -->
+            <path d="M 100, 35 C 135, 36 165, 65 167, 100 C 168, 135 135, 165 100, 167 C 65, 168 36, 135 35, 100 C 34, 65 65, 34 100, 35 Z" stroke-width="1" opacity="0.4" stroke-dasharray="4 4" />
+            
+            <!-- Внутренний мини-контур -->
+            <path d="M 100, 65 C 118, 65 135, 80 136, 100 C 137, 118 118, 136 100, 137 C 82, 137 65, 118 65, 100 C 65, 82 82, 65 100, 65 Z" stroke-width="1" opacity="0.3" />
+            
+            <!-- Органические осевые линии (слегка изгибаются к центру, поддерживая стиль сонара) -->
+            <line x1="100" y1="5" x2="100" y2="195" stroke-width="1" opacity="0.25" />
+            <line x1="5" y1="100" x2="195" y2="100" stroke-width="1" opacity="0.25" />
         </svg>
 
         <!-- Вращающийся луч радара -->
         <div class="layer-absolute radar-sweep"></div>
-
-        <!-- Lottie Анимация Кита -->
-        <div class="layer-absolute lottie-whale-box">
-            <lottie-player 
-                src="public/gifs/whale.json" 
-                background="transparent" 
-                speed="1" 
-                loop 
-                autoplay
-                style="width: 100%; height: 100%; object-fit: contain;">
-            </lottie-player>
-        </div>
 
     </div>
 
@@ -211,13 +191,11 @@
         const tg = window.Telegram.WebApp;
         tg.ready();
         
-        // Полноэкранный режим для свежих версий TWA
         tg.expand();
         if (tg.requestFullscreen) {
             tg.requestFullscreen();
         }
         
-        // Красим системные бары в OLED черный
         tg.setHeaderColor('#000000');
         tg.setBackgroundColor('#000000');
     </script>
