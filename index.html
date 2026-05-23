@@ -23,7 +23,7 @@
             -webkit-user-select: none;
         }
 
-        /* Заголовок выровнен по оси Y с элементами интерфейса Telegram FullScreen */
+        /* Заголовок выровнен по интерфейсу Telegram */
         header {
             position: absolute;
             top: var(--tg-safe-area-inset-top, env(safe-area-inset-top, 0px));
@@ -83,19 +83,44 @@
             animation: rotateCounter 30s linear infinite;
         }
 
-        /* --- ДИНАМИЧЕСКИЕ ОКРУЖНОСТИ РАДАРА (Вращаются) --- */
-        .radar-circles-moving {
+        /* --- ВНЕШНИЙ КОНТУР РАДАРА (Вращается стабильно) --- */
+        .radar-outer-moving {
             width: 100%;
             height: 100%;
             z-index: 2;
             pointer-events: none;
             animation: rotateCounter 25s linear infinite; 
         }
-
-        .radar-circles-moving path {
+        .radar-outer-moving path {
             fill: none;
             stroke: rgba(215, 235, 255, 0.32); 
             stroke-width: 1.2;
+        }
+
+        /* --- ДИНАМИЧЕСКИЕ ИМПУЛЬСНЫЕ КОЛЬЦА (Разлетаются из центра) --- */
+        .pulse-ring-wrapper {
+            width: 100%;
+            height: 100%;
+            z-index: 2;
+            pointer-events: none;
+        }
+        .pulse-ring-wrapper path {
+            fill: none;
+            stroke: rgba(215, 235, 255, 0.35);
+            transform-origin: center;
+        }
+        
+        /* Первое импульсное кольцо (сплошное) */
+        .ring-pulse-1 {
+            stroke-width: 1.2;
+            animation: sonarPing 3.2s cubic-bezier(0.215, 0.610, 0.355, 1) infinite;
+        }
+        /* Второе импульсное кольцо (пунктирное, летит следом) */
+        .ring-pulse-2 {
+            stroke-width: 1;
+            stroke-dasharray: 4 4;
+            animation: sonarPing 3.2s cubic-bezier(0.215, 0.610, 0.355, 1) infinite;
+            animation-delay: 1.6s;
         }
 
         /* --- СТАТИЧНЫЙ КРЕСТ --- */
@@ -105,14 +130,13 @@
             z-index: 3;
             pointer-events: none;
         }
-
         .radar-lines-static path {
             fill: none;
             stroke: rgba(215, 235, 255, 0.22);
             stroke-width: 1;
         }
 
-        /* --- ВРАЩАЮЩИЙСЯ КОНТЕЙНЕР ЛУЧА --- */
+        /* --- ВРАЩАЮЩИЙСЯ ЛУЧ И ИСЧЕЗАЮЩИЙ ХВОСТ --- */
         .radar-sweep-container {
             width: 100%;
             height: 100%;
@@ -121,18 +145,44 @@
             animation: sweepRotate 4s linear infinite;
         }
 
+        /* Свечение следа (конический шлейф, уходящий в альфу) */
+        .sweep-fade-tail {
+            width: 96%; height: 96%;
+            border-radius: 50%;
+            position: absolute;
+            top: 2%; left: 2%;
+            background: conic-gradient(
+                from -40deg,
+                rgba(0, 109, 249, 0) 0%,
+                rgba(0, 109, 249, 0.15) 60%,
+                rgba(215, 235, 255, 0.25) 100%
+            );
+            mask: url(#radarMask);
+            -webkit-mask: url(#radarMask);
+            pointer-events: none;
+        }
+
+        /* Тонкая живая линия самого сканера */
         .radar-sweep-container path.sweep-line {
             fill: none;
             stroke: rgba(215, 235, 255, 0.45);
-            stroke-width: 1.3;
+            stroke-width: 1.4;
         }
 
-        .radar-sweep-container path.sweep-glow {
-            fill: url(#sweepGradient);
-            opacity: 0.22;
+        /* АНИМАЦИИ */
+        @keyframes sonarPing {
+            0% {
+                transform: translate(-50%, -50%) scale(0);
+                opacity: 0.9;
+            }
+            80% {
+                opacity: 0.4;
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 0;
+            }
         }
-
-        /* АНИМАЦИИ ВРАЩЕНИЯ */
         @keyframes rotateClock {
             0% { transform: translate(-50%, -50%) rotate(0deg); }
             100% { transform: translate(-50%, -50%) rotate(360deg); }
@@ -182,44 +232,45 @@
             <path d="M 100, 5 C 150, 7 193, 50 195, 100 C 197, 150 150, 193 100, 195 C 50, 197 7, 150 5, 100 C 3, 50 50, 3 100, 5 Z" />
         </svg>
 
-        <!-- ПОДВИЖНЫЙ СЛОЙ: Искаженные окружности радара -->
-        <svg class="layer-absolute radar-circles-moving" viewBox="0 0 200 200">
+        <!-- ФИКСИРОВАННЫЙ СЛОЙ: Внешний искаженный контур радара (Белый 0.32) -->
+        <svg class="layer-absolute radar-outer-moving" viewBox="0 0 200 200">
             <path d="M 100, 5 C 150, 7 193, 50 195, 100 C 197, 150 150, 193 100, 195 C 50, 197 7, 150 5, 100 C 3, 50 50, 3 100, 5 Z" />
-            <path d="M 100, 35 C 135, 36 165, 65 166, 100 C 167, 135 135, 165 100, 166 C 65, 167 34, 135 35, 100 C 36, 65 65, 34 100, 35 Z" stroke-dasharray="3 3" />
-            <path d="M 100, 65 C 118, 65 137, 82 138, 100 C 139, 118 118, 137 100, 138 C 82, 139 62, 118 63, 100 C 64, 82 82, 64 100, 65 Z" />
         </svg>
 
-        <!-- СТАТИЧНЫЙ СЛОЙ: Перекрестие (С легким, почти незаметным изгибом) -->
+        <!-- ДИНАМИЧЕСКИЙ СЛОЙ: Кольца, разлетающиеся из центра и исчезающие -->
+        <svg class="layer-absolute pulse-ring-wrapper" viewBox="0 0 200 200">
+            <!-- Кольцо 1: Повторяет форму основного искажения при расширении -->
+            <path class="layer-absolute ring-pulse-1" d="M 100, 5 C 150, 7 193, 50 195, 100 C 197, 150 150, 193 100, 195 C 50, 197 7, 150 5, 100 C 3, 50 50, 3 100, 5 Z" />
+            <!-- Кольцо 2: Пунктирное, идет внахлест -->
+            <path class="layer-absolute ring-pulse-2" d="M 100, 5 C 150, 7 193, 50 195, 100 C 197, 150 150, 193 100, 195 C 50, 197 7, 150 5, 100 C 3, 50 50, 3 100, 5 Z" />
+        </svg>
+
+        <!-- СТАТИЧНЫЙ СЛОЙ: Перекрестие (С легким изгибом, не вращается) -->
         <svg class="layer-absolute radar-lines-static" viewBox="0 0 200 200">
             <path d="M 100, 12 Q 99, 70 100.5, 100 T 100, 188" />
             <path d="M 12, 100 Q 70, 100.5 100, 99.5 T 188, 100" />
         </svg>
 
-        <!-- ДИНАМИЧЕСКИЙ СЛОЙ: Слегка изгибающийся и пульсирующий луч со шлейфом -->
-        <svg class="layer-absolute radar-sweep-container" viewBox="0 0 200 200">
-            <defs>
-                <radialGradient id="sweepGradient" cx="50%" cy="50%" r="50%">
-                    <stop offset="0%" stop-color="#006DF9" stop-opacity="0.45"/>
-                    <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
-                </radialGradient>
-            </defs>
+        <!-- ДИНАМИЧЕСКИЙ СЛОЙ: Сканирующий луч и честный исчезающий фейд-след -->
+        <div class="layer-absolute radar-sweep-container">
+            <!-- Объёмный затухающий хвост -->
+            <div class="sweep-fade-tail"></div>
             
-            <!-- Легкий шлейф -->
-            <path class="sweep-glow" d="M 100,100 Q 104,50 100,5 C 122,12 140,45 100,100 Z" />
-            
-            <!-- Анимированная линия сканера с ультра-мягким колыханием (морфинг изгиба Q) -->
-            <path class="sweep-line" d="M 100, 100 Q 103, 50 100, 5">
-                <animate 
-                    attributeName="d" 
-                    dur="3s" 
-                    repeatCount="indefinite"
-                    values="M 100, 100 Q 103, 50 100, 5; 
-                            M 100, 100 Q 98, 50 100, 5; 
-                            M 100, 100 Q 105, 50 100, 5; 
-                            M 100, 100 Q 103, 50 100, 5" 
-                />
-            </path>
-        </svg>
+            <!-- Тонкая, аккуратно анимированная нить прибора -->
+            <svg class="w-full h-full" viewBox="0 0 200 200" style="position: absolute; top: 0; left: 0;">
+                <path class="sweep-line" d="M 100, 100 Q 102, 50 100, 5">
+                    <animate 
+                        attributeName="d" 
+                        dur="3.5s" 
+                        repeatCount="indefinite"
+                        values="M 100, 100 Q 102, 50 100, 5; 
+                                M 100, 100 Q 99, 50 100, 5; 
+                                M 100, 100 Q 104, 50 100, 5; 
+                                M 100, 100 Q 102, 50 100, 5" 
+                    />
+                </path>
+            </svg>
+        </div>
 
     </div>
 
