@@ -2,18 +2,25 @@ python
 import os
 import logging
 import asyncio
+import sys
 from aiohttp import web
 from aiogram import Bot, Dispatcher, types, F
 from aiogram.filters import Command
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
-# Настройка логирования
-logging.basicConfig(level=logging.INFO)
+# Настройка логирования на вывод в sys.stdout для логов Render
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    handlers=[logging.StreamHandler(sys.stdout)]
+)
+logger = logging.getLogger(__name__)
 
 # Токен берем из переменных окружения
 API_TOKEN = os.getenv("TOKEN")
 if not API_TOKEN:
-    raise ValueError("Переменная окружения TOKEN не задана!")
+    logger.error("КРИТИЧЕСКАЯ ОШИБКА: Переменная окружения 'TOKEN' отсутствует в настройках Render!")
+    sys.exit(1)
 
 # Порт для Render Web Service (Render автоматически передает переменную PORT)
 PORT = int(os.getenv("PORT", "10000"))
@@ -27,10 +34,9 @@ WHALE_STICKER_ID = "CAACAgEAAxkBAAFKV1RqEF_JacpzbFDVm0tHXYhFeNMFegACGwMAArAHGESR
 OFFICIAL_CHANNEL_URL = "https://t.me/samosoboy_official"
 MINI_APP_URL = "https://t.me/samosoboy_bot/app"  # Ссылка на Mini App
 
-# --- ДЕБАТЫ И ВЕБ-СЕРВЕР ДЛЯ RENDER WEB SERVICE ---
-# Этот веб-сервер нужен ТОЛЬКО для того, чтобы Render видел, что наш Web Service успешно запустился и слушает порт.
+# --- ВЕБ-СЕРВЕР ДЛЯ RENDER ---
 async def handle_health_check(request):
-    return web.Response(text="Бот СамоСобой запущен и работает!", status=200)
+    return web.Response(text="Бот СамоСобой запущен и работает успешно!", status=200)
 
 async def start_web_server():
     app = web.Application()
@@ -41,7 +47,7 @@ async def start_web_server():
     await runner.setup()
     site = web.TCPSite(runner, '0.0.0.0', PORT)
     await site.start()
-    logging.info(f"Здоровье Web-сервиса запущено на порту {PORT}")
+    logger.info(f"Здоровье Web-сервиса успешно запущено на порту {PORT}")
 
 # --- КЛАВИАТУРЫ ОПРОСА ---
 
@@ -56,7 +62,7 @@ def get_step_1_keyboard():
     builder.button(text="3-5", callback_data="step_2")
     builder.button(text="5-7", callback_data="step_2")
     builder.button(text="Я не хочу", callback_data="step_2")
-    builder.adjust(1) # Кнопки по одной в ряд (в столбик)
+    builder.adjust(1)
     return builder.as_markup()
 
 def get_step_2_keyboard():
@@ -143,21 +149,18 @@ async def process_finish(callback: types.CallbackQuery):
     chat_id = callback.message.chat.id
     first_name = callback.from_user.first_name
     
-    # Удаляем текущее сообщение опроса
     try:
         await callback.message.delete()
     except Exception as e:
-        logging.error(f"Не удалось удалить сообщение: {e}")
+        logger.error(f"Не удалось удалить сообщение: {e}")
         
     await callback.answer()
 
-    # Отправляем стикер кита из лога
     try:
         await bot.send_sticker(chat_id=chat_id, sticker=WHALE_STICKER_ID)
     except Exception as e:
-        logging.error(f"Не удалось отправить стикер: {e}")
+        logger.error(f"Не удалось отправить стикер: {e}")
 
-    # Финальное теплое приветствие
     final_text = (
         f"*Добро пожаловать, {first_name}!*\n\n"
         "Отправьте свой первый кораблик в плавание через приложение или с помощью бота, если нет сети. "
@@ -178,15 +181,26 @@ async def process_send_boat(callback: types.CallbackQuery):
     )
     await callback.answer()
 
-# --- ЗАПУСК БОТА С СЕРВЕРОМ ---
+# --- КОРРЕКТНЫЙ ЗАПУСК ДВУХ СЕРВИСОВ ---
 
 async def main():
-    # Запускаем фоновый веб-сервер для прохождения проверок Render
+    logger.info("Запуск инициализации приложения...")
+    # 1. Запускаем фоновый веб-сервер для прохождения пинга от Render
     await start_web_server()
     
-    # Удаляем вебхуки и запускаем лонг-поллинг бота
+    # 2. Сбрасываем старые вебхуки Telegram во избежание конфликтов лонг-поллинга
+    logger.info("Сброс вебхуков Telegram...")
     await bot.delete_webhook(drop_pending_updates=True)
+    
+    # 3. Запускаем опрос сообщений бота
+    logger.info("Бот начинает опрос серверов Telegram...")
     await dp.start_polling(bot)
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    try:
+        asyncio.run(main())
+    except (KeyboardInterrupt, SystemExit):
+        logger.info("Бот остановлен.")
+    except Exception as e:
+        logger.critical(f"Критическая ошибка при работе приложения: {e}", exc_info=True)
+        sys.exit(2)
