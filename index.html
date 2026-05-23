@@ -14,13 +14,18 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         body {
-            font-family: 'Inter', sans-serif;
+            font-family: 'Inter', sans-serif !important;
             padding-top: env(safe-area-inset-top);
             padding-bottom: env(safe-area-inset-bottom);
             background-color: #000000; /* Глубокий черный фон Apple */
             user-select: none;
             -webkit-user-select: none;
             overflow: hidden;
+        }
+
+        /* Принудительно задаем шрифт Inter для всех элементов */
+        * {
+            font-family: 'Inter', sans-serif !important;
         }
 
         /* Анимация плавного смещения волн по горизонтали */
@@ -52,41 +57,41 @@
             height: 100%;
         }
 
-        /* Задний слой (более прозрачный и еще более медленный) */
+        /* Задний слой (более прозрачный и медленный) */
         .wave-back {
             fill: #ffffff;
-            opacity: 0.03;
+            opacity: 0.02; /* Мягкое глубинное свечение */
             animation: waveRight 24s ease-in-out infinite;
         }
 
-        /* Передний слой (чуть более контрастный) */
+        /* Передний слой (сделали темнее и субтильнее) */
         .wave-front {
             fill: #ffffff;
-            opacity: 0.07;
+            opacity: 0.04; /* Уменьшили яркость для более темного эффекта */
             animation: waveLeft 18s ease-in-out infinite;
         }
     </style>
 </head>
 <body class="h-screen w-full flex flex-col justify-between items-center relative overflow-hidden">
     
-    <!-- ЗАГЛОВОК В САМОМ ВЕРХУ ПО ОСИ ИКС С ЛОГОТИПОМ СПРАВА -->
+    <!-- ЗАГЛОВАК В САМОМ ВЕРХУ ПО ОСИ ИКС С ЛОГОТИПОМ СЛЕВА -->
     <header class="w-full flex justify-center items-center pt-3 z-10 shrink-0">
         <div class="flex items-center space-x-2">
-            <!-- Крупный заголовок с аккуратным межбуквенным расстоянием -->
-            <span class="text-base font-bold tracking-tight text-white">
-                СамоСобой
-            </span>
-            <!-- Логотип справа от текста из папки public/icons/logo.png без фона -->
+            <!-- Логотип слева от текста из папки public/icons/logo.png без фона -->
             <img 
                 src="public/icons/logo.png" 
                 alt="" 
                 class="w-5 h-5 object-contain"
                 onerror="this.style.display='none'; document.getElementById('logo-fallback').style.display='block';"
             />
-            <!-- Запасной вариант, если картинка еще не подгрузилась -->
+            <!-- Запасной вариант, если картинка logo.png еще не загружена в репозиторий -->
             <svg id="logo-fallback" class="w-4 h-4 text-white hidden" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M4 14h16v1h-1v1h-1v1H6v-1H5v-1H4v-1zm4-1h1v-1H8v1zm3 0h1v-3h-1v3zm3 0h1v-5h-1v5z" />
             </svg>
+            <!-- Крупный заголовок с аккуратным межбуквенным расстоянием -->
+            <span class="text-base font-bold tracking-tight text-white select-none">
+                СамоСобой
+            </span>
         </div>
     </header>
 
@@ -100,7 +105,7 @@
             <path d="M0,80 C150,110 350,50 500,80 C650,110 850,50 1000,80 C1150,110 1350,50 1500,80 L1500,120 L0,120 Z"></path>
         </svg>
         
-        <!-- Передний слой -->
+        <!-- Передний слой (более темный) -->
         <svg class="wave-layer wave-front" viewBox="0 0 1200 120" preserveAspectRatio="none">
             <path d="M0,70 C150,40 350,100 500,70 C650,40 850,100 1000,70 C1150,40 1350,100 1500,70 L1500,120 L0,120 Z"></path>
         </svg>
