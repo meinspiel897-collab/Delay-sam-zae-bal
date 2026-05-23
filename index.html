@@ -23,7 +23,7 @@
             -webkit-user-select: none;
         }
 
-        /* Заголовок выровнен по системным кнопкам Telegram */
+        /* Заголовок выровнен по оси Y с элементами интерфейса Telegram FullScreen */
         header {
             position: absolute;
             top: var(--tg-safe-area-inset-top, env(safe-area-inset-top, 0px));
@@ -37,20 +37,20 @@
             pointer-events: none;
         }
 
-        /* Главный рабочий контейнер радара */
+        /* Главный квадратный контейнер */
         .radar-container {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
             width: 60vw;
-            height: 60vw;
+            height: 60vw; 
             max-width: 260px;
             max-height: 260px;
             aspect-ratio: 1 / 1;
         }
 
-        /* БАЗОВЫЙ КЛАСС: Абсолютное центрирование для всех слоев */
+        /* Абсолютное центрирование слоев */
         .layer-absolute {
             position: absolute;
             top: 50%;
@@ -60,60 +60,66 @@
             overflow: visible;
         }
 
-        /* --- ВОЛНОВЫЕ КРУГИ (#006DF9) --- */
+        /* --- ВОЛНОВЫЕ КРУГИ (Сниженная, более мягкая прозрачность) --- */
         .circle-layer-1 {
             width: 100%; height: 100%;
-            fill: #006DF9; opacity: 0.9;
+            fill: #006DF9; 
+            opacity: 0.75; /* Сделали чуть меньше 0.9 для мягкости фона */
             z-index: 1;
             animation: rotateCounter 25s linear infinite;
         }
         .circle-layer-2 {
-            width: 112%; height: 112%;
-            fill: #006DF9; opacity: 0.45;
+            width: 114%; height: 114%;
+            fill: #006DF9; 
+            opacity: 0.35; /* Уменьшили с 0.45 */
             z-index: 1;
             animation: rotateClock 18s linear infinite;
         }
         .circle-layer-3 {
-            width: 120%; height: 120%; /* Сделан аккуратнее и чуть меньше */
-            fill: #006DF9; opacity: 0.15;
+            width: 120%; height: 120%; /* Сделали чуток меньше (было 128%) */
+            fill: #006DF9; 
+            opacity: 0.15; 
             z-index: 1;
             animation: rotateCounter 30s linear infinite;
         }
 
-        /* 
-           --- ИСКАЖЕННАЯ СЕТКА РАДАРА ---
-           Связана анимацией с первым кругом (z-index: 2), чтобы двигаться синхронно.
-           Цвет изменен на мягкий акцентный #006DF9 с прозрачностью.
-        */
-        .radar-grid-organic {
-            width: 100%; height: 100%;
+        /* --- ИСКАЖЕННАЯ СЕТКА РАДАРА С ПРОЗРАЧНОСТЬЮ БЕЛОГО 0.45 --- */
+        .radar-grid-wrapper {
+            width: 100%;
+            height: 100%;
             z-index: 2;
             pointer-events: none;
-            animation: rotateCounter 25s linear infinite; /* Та же скорость, что и у круга-1 */
-        }
-        .radar-grid-organic path, .radar-grid-organic line {
-            stroke: #006DF9;
-            fill: none;
+            /* Вращаем вместе с первым кругом, чтобы искажения совпадали */
+            animation: rotateCounter 25s linear infinite; 
         }
 
-        /* --- ВРАЩАЮЩИЙСЯ ЛУЧ РАДАРА --- */
+        .radar-grid-wrapper path {
+            fill: none;
+            stroke: rgba(255, 255, 255, 0.45); /* Прозрачность белого ровно 0.45 */
+            stroke-width: 1.2;
+        }
+
+        .radar-grid-wrapper line {
+            stroke: rgba(255, 255, 255, 0.3);
+            stroke-width: 1;
+        }
+
+        /* --- ЛУЧ РАДАРА (Мягкое сканирование) --- */
         .radar-sweep {
-            width: 96%; height: 96%;
+            width: 96%; height: 96%; 
             border-radius: 50%;
-            /* Градиент в тон основного цвета, приглушен по яркости */
             background: conic-gradient(
                 from 0deg, 
-                rgba(0, 109, 249, 0) 50%, 
-                rgba(0, 109, 249, 0.08) 85%, 
-                rgba(0, 109, 249, 0.4) 98%, 
-                rgba(0, 109, 249, 0.7) 100%
+                transparent 50%, 
+                rgba(0, 109, 249, 0.1) 85%, 
+                rgba(255, 255, 255, 0.4) 100%
             );
             z-index: 3;
             pointer-events: none;
             animation: sweepRotate 4s linear infinite;
         }
 
-        /* СИНХРОННЫЕ АНИМАЦИИ ВРАЩЕНИЯ */
+        /* АНИМАЦИИ ВРАЩЕНИЯ */
         @keyframes rotateClock {
             0% { transform: translate(-50%, -50%) rotate(0deg); }
             100% { transform: translate(-50%, -50%) rotate(360deg); }
@@ -130,7 +136,7 @@
 </head>
 <body>
 
-    <!-- Шапка с мягким регистром текста -->
+    <!-- Шапка приложения (Текст нормальным регистром) -->
     <header>
         <div class="flex items-center space-x-2.5">
             <img 
@@ -145,44 +151,41 @@
         </div>
     </header>
 
-    <!-- Главная рабочая зона -->
+    <!-- Главная рабочая зона радара -->
     <div class="radar-container">
         
-        <!-- Слой 3 (Задний: Компактные волновые ушки) -->
+        <!-- Слой 3 (Задний фон: Уменьшенный размер) -->
         <svg class="layer-absolute circle-layer-3" viewBox="0 0 200 200">
             <path d="M 100, 2 C 140, 10 180, 25 198, 90 C 215, 155 150, 195 100, 198 C 50, 201 -5, 150 2, 90 C 10, 30 60, -5 100, 2 Z" />
         </svg>
 
-        <!-- Слой 2 (Средний) -->
+        <!-- Слой 2 (Средний: Промежуточные волны) -->
         <svg class="layer-absolute circle-layer-2" viewBox="0 0 200 200">
             <path d="M 100, 5 C 135, 2 190, 30 195, 100 C 200, 170 145, 198 100, 195 C 55, 192 2, 160 5, 100 C 8, 40 65, 8 100, 5 Z" />
         </svg>
 
-        <!-- Слой 1 (Передний: Плотный живой круг) -->
+        <!-- Слой 1 (Передний основной круг) -->
         <svg class="layer-absolute circle-layer-1" viewBox="0 0 200 200">
             <path d="M 100, 5 C 150, 7 193, 50 195, 100 C 197, 150 150, 193 100, 195 C 50, 197 7, 150 5, 100 C 3, 50 50, 3 100, 5 Z" />
         </svg>
 
-        <!-- 
-            НОВАЯ ЖИВАЯ СЕТКА РАДАРА: 
-            Внутренние элементы полностью унаследовали искаженную траекторию внешнего контура.
-        -->
-        <svg class="layer-absolute radar-grid-organic" viewBox="0 0 200 200">
-            <!-- Внешний контур (Дублирует форму круга-1, stroke-width 1.5) -->
-            <path d="M 100, 5 C 150, 7 193, 50 195, 100 C 197, 150 150, 193 100, 195 C 50, 197 7, 150 5, 100 C 3, 50 50, 3 100, 5 Z" stroke-width="1.5" opacity="0.7" />
+        <!-- Сетка радара, повторяющая волновое искажение первого круга -->
+        <svg class="layer-absolute radar-grid-wrapper" viewBox="0 0 200 200">
+            <!-- Внешний контур (точная копия формы первого круга) -->
+            <path d="M 100, 5 C 150, 7 193, 50 195, 100 C 197, 150 150, 193 100, 195 C 50, 197 7, 150 5, 100 C 3, 50 50, 3 100, 5 Z" />
             
-            <!-- Средний контур (Пропорционально уменьшенная копия той же волны, пунктир) -->
-            <path d="M 100, 35 C 135, 36 165, 65 167, 100 C 168, 135 135, 165 100, 167 C 65, 168 36, 135 35, 100 C 34, 65 65, 34 100, 35 Z" stroke-width="1" opacity="0.4" stroke-dasharray="4 4" />
+            <!-- Средний контур (пропорционально уменьшенное искажение первого круга) -->
+            <path d="M 100, 35 C 135, 36 165, 65 166, 100 C 167, 135 135, 165 100, 166 C 65, 167 34, 135 35, 100 C 36, 65 65, 34 100, 35 Z" stroke-dasharray="3 3" />
             
-            <!-- Внутренний мини-контур -->
-            <path d="M 100, 65 C 118, 65 135, 80 136, 100 C 137, 118 118, 136 100, 137 C 82, 137 65, 118 65, 100 C 65, 82 82, 65 100, 65 Z" stroke-width="1" opacity="0.3" />
+            <!-- Внутренний малый контур -->
+            <path d="M 100, 65 C 118, 65 137, 82 138, 100 C 139, 118 118, 137 100, 138 C 82, 139 62, 118 63, 100 C 64, 82 82, 64 100, 65 Z" />
             
-            <!-- Органические осевые линии (слегка изгибаются к центру, поддерживая стиль сонара) -->
-            <line x1="100" y1="5" x2="100" y2="195" stroke-width="1" opacity="0.25" />
-            <line x1="5" y1="100" x2="195" y2="100" stroke-width="1" opacity="0.25" />
+            <!-- Осевые линии (обрезаны аккуратно по внутренним границам) -->
+            <line x1="100" y1="12" x2="100" y2="188" />
+            <line x1="12" y1="100" x2="188" y2="100" />
         </svg>
 
-        <!-- Вращающийся луч радара -->
+        <!-- Вращающийся сканирующий луч -->
         <div class="layer-absolute radar-sweep"></div>
 
     </div>
