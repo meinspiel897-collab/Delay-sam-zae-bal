@@ -22,7 +22,7 @@
             user-select: none;
             -webkit-user-select: none;
             padding-top: calc(var(--tg-safe-area-inset-top, env(safe-area-inset-top, 0px)) + 44px);
-            padding-bottom: var(--tg-safe-area-inset-bottom, env(safe-area-inset-bottom, 0px));
+            padding-bottom: calc(var(--tg-safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)) + 16px);
         }
 
         /* Шапка */
@@ -39,7 +39,7 @@
             pointer-events: none;
         }
 
-        /* Центрирование слоев внутри радара */
+        /* Абсолютное центрирование слоев внутри радара */
         .layer-absolute {
             position: absolute;
             top: 50%;
@@ -72,7 +72,7 @@
             animation: rotateCounter 30s linear infinite;
         }
 
-        /* --- ДИНАМИЧЕСКИЕ ИМПУЛЬСНЫЕ КОЛЬЦА (Строго из центра первого круга) --- */
+        /* --- ДИНАМИЧЕСКИЕ ИМПУЛЬСНЫЕ КОЛЬЦА --- */
         .pulse-ring-container {
             width: 100%;
             height: 100%;
@@ -82,10 +82,9 @@
         .pulse-ring-container path {
             fill: none;
             stroke: rgba(215, 235, 255, 0.4);
-            stroke-width: 1.0; /* Тонкая линия */
-            transform-origin: 100px 100px; /* Точка трансформации внутри SVG */
+            stroke-width: 1.0;
+            transform-origin: 100px 100px;
         }
-        
         .ring-pulse-1 {
             animation: sonarPing 3.2s cubic-bezier(0.1, 0.4, 0.2, 1) infinite;
         }
@@ -107,18 +106,10 @@
             stroke-width: 1;
         }
 
-        /* --- ВРАЩАЮЩИЙСЯ ЛУЧ С ФЕЙДОМ --- */
-        .radar-sweep-solid {
-            width: 98%; 
-            height: 98%; 
-            border-radius: 50%;
-            background: conic-gradient(
-                from 0deg, 
-                transparent 40%, 
-                rgba(0, 109, 249, 0.08) 75%,
-                rgba(215, 235, 255, 0.22) 99.2%,
-                rgba(215, 235, 255, 0.55) 100%
-            );
+        /* --- ИСКАЖЕННЫЙ ЛУЧ С ВЕКТОРНЫМ ХВОСТОМ-ГРАДИЕНТОМ --- */
+        .radar-sweep-vector {
+            width: 100%;
+            height: 100%;
             z-index: 4;
             pointer-events: none;
             animation: sweepRotate 4s linear infinite;
@@ -126,20 +117,10 @@
 
         /* АНИМАЦИИ */
         @keyframes sonarPing {
-            0% {
-                transform: scale(0);
-                opacity: 0.9;
-            }
-            50% {
-                opacity: 0.5;
-            }
-            90% {
-                opacity: 0;
-            }
-            100% {
-                transform: scale(1.1);
-                opacity: 0;
-            }
+            0% { transform: scale(0); opacity: 0.9; }
+            50% { opacity: 0.5; }
+            90% { opacity: 0; }
+            100% { transform: scale(1.1); opacity: 0; }
         }
         @keyframes rotateClock {
             0% { transform: translate(-50%, -50%) rotate(0deg); }
@@ -172,12 +153,12 @@
         </div>
     </header>
 
-    <!-- Основной контент-контейнер (Делит экран на радар и нижний блок) -->
-    <div class="flex-1 flex flex-col items-center justify-between px-6 py-8 h-full">
+    <!-- Главная структура экрана (Flex-распределение) -->
+    <div class="flex-1 flex flex-col justify-between items-center px-6 h-full">
         
-        <!-- Контейнер радара (центрируется в выделенной ему верхней/средней зоне) -->
-        <div class="flex-1 flex items-center justify-center w-full relative min-h-[280px]">
-            <div class="w-[60vw] h-[60vw] max-w-[250px] max-h-[250px] aspect-ratio[1/1] relative">
+        <!-- ТОЧКА 1: Зона радара (занимает верхнюю часть) -->
+        <div class="flex-1 flex items-center justify-center w-full relative min-h-[260px] max-h-[45vh]">
+            <div class="w-[58vw] h-[58vw] max-w-[240px] max-h-[240px] aspect-ratio[1/1] relative">
                 
                 <!-- Слой 3 (Задний фон) -->
                 <svg class="layer-absolute circle-layer-3" viewBox="0 0 200 200">
@@ -194,7 +175,7 @@
                     <path d="M 100, 5 C 150, 7 193, 50 195, 100 C 197, 150 150, 193 100, 195 C 50, 197 7, 150 5, 100 C 3, 50 50, 3 100, 5 Z" />
                 </svg>
 
-                <!-- ДИНАМИЧЕСКИЕ КОЛЬЦА: Копии формы 1-го круга, растущие строго из его центра -->
+                <!-- ДИНАМИЧЕСКИЕ КОЛЬЦА (Растут из геометрии первого круга) -->
                 <svg class="layer-absolute pulse-ring-container" viewBox="0 0 200 200">
                     <path class="ring-pulse-1" d="M 100, 5 C 150, 7 193, 50 195, 100 C 197, 150 150, 193 100, 195 C 50, 197 7, 150 5, 100 C 3, 50 50, 3 100, 5 Z" />
                     <path class="ring-pulse-2" d="M 100, 5 C 150, 7 193, 50 195, 100 C 197, 150 150, 193 100, 195 C 50, 197 7, 150 5, 100 C 3, 50 50, 3 100, 5 Z" />
@@ -206,20 +187,40 @@
                     <path d="M 12, 100 Q 70, 100.5 100, 99.5 T 188, 100" />
                 </svg>
 
-                <!-- ВРАЩАЮЩИЙСЯ ЛУЧ -->
-                <div class="layer-absolute radar-sweep-solid"></div>
+                <!-- ДЕФОРМИРОВАННЫЙ ЛУЧ РАДАРА С ХВОСТОМ -->
+                <svg class="layer-absolute radar-sweep-vector" viewBox="0 0 200 200">
+                    <defs>
+                        <!-- Мягкий конический обход заменен на точный векторный градиент шлейфа -->
+                        <linearGradient id="sweep-gradient" x1="0%" y1="100%" x2="100%" y2="0%">
+                            <stop offset="0%" stop-color="rgba(0, 109, 249, 0)" />
+                            <stop offset="60%" stop-color="rgba(0, 109, 249, 0.12)" />
+                            <stop offset="96%" stop-color="rgba(215, 235, 255, 0.35)" />
+                            <stop offset="100%" stop-color="rgba(215, 235, 255, 0.75)" />
+                        </linearGradient>
+                    </defs>
+                    <!-- Путь в точности дублирует искажение первого круга -->
+                    <path d="M 100, 5 C 150, 7 193, 50 195, 100 C 197, 150 150, 193 100, 195 C 50, 197 7, 150 5, 100 C 3, 50 50, 3 100, 5 Z" 
+                          fill="none" 
+                          stroke="url(#sweep-gradient)" 
+                          stroke-width="1.8" />
+                </svg>
 
             </div>
         </div>
 
-        <!-- Текстовый блок и кнопка под радаром -->
-        <div class="w-full max-w-[320px] flex flex-col items-center space-y-5 text-center mt-2 mb-4">
-            <p class="text-sm font-medium leading-relaxed text-white/85 px-2">
-                Самое время поймать чей-нибудь кораблик! Сейчас в океане 999 дрейфующих бортов, какой достанешь ты?
+        <!-- ТОЧКА 2: Текст с идеальной симметрией отступов (my-auto распределяет пустоту поровну) -->
+        <div class="w-full max-w-[325px] flex flex-col items-center text-center my-auto px-1">
+            <p class="text-[14px] font-medium leading-relaxed text-white/85">
+                Самое время поймать чей-нибудь кораблик! Сейчас в океане 
+                <!-- Выделенный прямоугольник «999» с отступами по 5px (px-1.5, py-0.5 примерно дают нужные 5px) -->
+                <span class="inline-block mx-1 px-[5px] py-[3px] bg-white/10 rounded-[4px] text-white/85 font-semibold tabular-nums align-baseline">999</span> 
+                дрейфующих бортов, какой достанешь ты?
             </p>
-            
-            <!-- Нативная кнопка в стиле TG по гайдлайнам Web App -->
-            <button class="w-full py-3.5 px-6 rounded-full text-[15px] font-semibold tracking-wide transition-transform active:scale-[0.98] bg-[#006DF9] text-white bg-[--tg-theme-button-color] text-[--tg-theme-button-text-color]">
+        </div>
+
+        <!-- ТОЧКА 3: Кнопка (занимает нижнюю часть) -->
+        <div class="w-full max-w-[325px] pt-2 pb-4">
+            <button class="w-full py-4 px-6 rounded-full text-[15px] font-semibold tracking-wide transition-all active:scale-[0.97] bg-[#006DF9] text-white bg-[--tg-theme-button-color] text-[--tg-theme-button-text-color] shadow-md">
                 Поймать что-нибудь
             </button>
         </div>
