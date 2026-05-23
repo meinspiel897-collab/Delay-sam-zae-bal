@@ -6,92 +6,89 @@
     <title>СамоСобой Mini App</title>
     <!-- Подключаем Telegram WebApp JS SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <!-- Tailwind CSS для быстрой и красивой стилизации -->
+    <!-- Tailwind CSS для стилизации -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Подключаем премиальный шрифт Manrope из Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        /* Адаптация под вырез iPhone (safe areas) */
         body {
+            font-family: 'Manrope', sans-serif;
             padding-top: env(safe-area-inset-top);
             padding-bottom: env(safe-area-inset-bottom);
-            background-color: #0b0c0e;
+            background-color: #000000; /* Глубокий матово-черный фон iOS */
             user-select: none;
             -webkit-user-select: none;
             overflow: hidden;
         }
-        /* Плавное покачивание кораблика */
-        @keyframes float {
-            0% { transform: translateY(0px) rotate(0deg); }
-            50% { transform: translateY(-10px) rotate(2deg); }
-            100% { transform: translateY(0px) rotate(0deg); }
-        }
-        /* Анимация движения волн на заднем фоне */
-        @keyframes waveMove {
-            0% { transform: translateX(0) translateZ(0) scaleY(1); }
-            50% { transform: translateX(-25%) translateZ(0) scaleY(0.8); }
-            100% { transform: translateX(-50%) translateZ(0) scaleY(1); }
-        }
-        .floating-ship {
-            animation: float 4s ease-in-out infinite;
-        }
-        .wave-bg {
-            animation: waveMove 12s linear infinite;
+        /* Статичные белые волны на фоне (без суетливых анимаций) */
+        .wave-bottom {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 120' preserveAspectRatio='none'%3E%3Cpath d='M0,60 C150,100 350,20 500,60 C650,100 850,20 1000,60 C1150,100 1350,20 1500,60 L1500,120 L0,120 Z' fill='%23ffffff' fill-opacity='0.08'/%3E%3C/svg%3E");
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: bottom;
         }
     </style>
 </head>
-<body class="h-screen w-full text-white flex flex-col justify-between items-center font-sans">
+<body class="h-screen w-full text-white flex flex-col justify-between items-center relative">
     
     <!-- Шапка приложения -->
     <div class="w-full flex justify-between items-center px-6 pt-6 z-10">
-        <span class="text-xs text-gray-500 uppercase tracking-widest font-medium">анонимный океан</span>
-        <div class="h-2 w-2 rounded-full bg-blue-500 animate-pulse"></div>
+        <span class="text-[10px] text-zinc-500 uppercase tracking-[0.2em] font-bold">анонимный океан</span>
+        <div class="h-1.5 w-1.5 rounded-full bg-zinc-500"></div>
     </div>
 
     <!-- Центральный логотип и статус-заглушка -->
     <div class="flex flex-col items-center justify-center flex-grow z-10 px-6 text-center">
-        <!-- Синий круг с пиксельным корабликом -->
-        <div class="w-32 h-32 rounded-full bg-[#1e61eb] flex items-center justify-center shadow-[0_0_40px_rgba(30,97,235,0.3)] mb-8 floating-ship">
-            <!-- Пиксельный кораблик из SVG прямо в коде (как на твоем логотипе) -->
-            <svg class="w-20 h-20 text-white" viewBox="0 0 24 24" fill="currentColor">
-                <!-- Рисуем аккуратную пиксельную структуру кораблика -->
-                <path d="M4 14h16v1h-1v1h-1v1H6v-1H5v-1H4v-1zm4-1h1v-1H8v1zm3 0h1v-3h-1v3zm3 0h1v-5h-1v5z" />
-                <path d="M3 13h18v1H3z" opacity="0.5"/>
-            </svg>
+        <!-- Контейнер для центрированного заголовка с логотипом слева -->
+        <div class="flex items-center justify-center space-x-3.5 mb-5">
+            <!-- Логотип из папки public/icons/logo.png с фоллбеком на элегантную иконку, если картинка не загрузится -->
+            <img 
+                src="public/icons/logo.png" 
+                alt="СамоСобой Logo" 
+                class="w-10 h-10 object-contain rounded-xl"
+                onerror="this.style.display='none'; document.getElementById('logo-fallback').style.display='flex';"
+            />
+            <!-- Элегантный пиксельный фоллбек-логотип (показывается, если файла на гитхабе нет) -->
+            <div id="logo-fallback" class="hidden w-10 h-10 rounded-xl bg-[#1e61eb] items-center justify-center">
+                <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M4 14h16v1h-1v1h-1v1H6v-1H5v-1H4v-1zm4-1h1v-1H8v1zm3 0h1v-3h-1v3zm3 0h1v-5h-1v5z" />
+                </svg>
+            </div>
+            
+            <!-- Жирный центрированный заголовок Manrope без лишних точек -->
+            <h1 class="text-3xl font-extrabold tracking-tight text-white leading-none">СамоСобой</h1>
         </div>
         
-        <h1 class="text-3xl font-semibold tracking-tight mb-2">СамоСобой</h1>
-        <p class="text-gray-400 text-sm max-w-[280px] leading-relaxed">
+        <p class="text-zinc-400 text-sm max-w-[280px] leading-relaxed font-normal">
             Мы вовсю готовим гавань к открытию. Скоро здесь будут твои активные чаты и запущенные мысли.
         </p>
     </div>
 
-    <!-- Нижняя часть с красивой пиксельной волной и кнопкой закрытия -->
+    <!-- Нижняя часть с красивой пиксельной волной и кнопкой возврата -->
     <div class="w-full relative flex flex-col items-center pb-8 z-10">
-        <!-- Кнопка действия Telegram (интегрированная) -->
-        <button onclick="closeApp()" class="px-8 py-3.5 bg-[#1a1b1f] hover:bg-[#24262b] active:scale-95 transition-all text-sm font-medium rounded-full border border-gray-800 text-gray-300 shadow-lg mb-8">
+        <!-- Кнопка возврата в стиле iOS (размытие, тонкие рамки, строгий шрифт) -->
+        <button onclick="closeApp()" class="px-10 py-3.5 bg-[#121214] hover:bg-[#1c1c1e] active:scale-95 transition-all text-xs font-semibold uppercase tracking-widest rounded-full border border-zinc-800 text-zinc-300 shadow-xl mb-12">
             Вернуться в бот
         </button>
 
-        <p class="text-[10px] text-gray-600 tracking-wider uppercase">всё сложится само собой • 2026</p>
+        <p class="text-[9px] text-zinc-600 tracking-[0.3em] uppercase font-bold">всё сложится само собой • 2026</p>
     </div>
 
-    <!-- Декоративные волны на фоне (как на твоем баннере) -->
-    <div class="absolute bottom-0 left-0 w-[200%] h-32 opacity-10 pointer-events-none overflow-hidden">
-        <svg class="absolute bottom-0 w-full h-full wave-bg text-blue-500" fill="currentColor" viewBox="0 0 1200 120" preserveAspectRatio="none">
-            <path d="M0,60 C150,100 350,20 500,60 C650,100 850,20 1000,60 C1150,100 1350,20 1500,60 L1500,120 L0,120 Z"></path>
-        </svg>
-    </div>
+    <!-- Декоративные статичные белые волны на фоне (8% прозрачности) -->
+    <div class="absolute bottom-0 left-0 w-full h-40 pointer-events-none wave-bottom opacity-80"></div>
 
     <script>
         // Инициализация Telegram WebApp
         const tg = window.Telegram.WebApp;
         
-        // Настраиваем цвета интерфейса Telegram в тон приложения
         tg.ready();
-        tg.expand(); // Раскрываем на весь экран
-        
-        // Устанавливаем цвета статус-бара и хедера
-        tg.setHeaderColor('#0b0c0e');
-        tg.setBackgroundColor('#0b0c0e');
+        tg.expand(); // Раскрываем во весь экран
+
+        // Красим верхний и нижний статус-бары Telegram в глубокий черный iOS-цвет
+        tg.setHeaderColor('#000000');
+        tg.setBackgroundColor('#000000');
 
         // Функция закрытия приложения
         function closeApp() {
@@ -100,3 +97,5 @@
     </script>
 </body>
 </html>
+
+```
