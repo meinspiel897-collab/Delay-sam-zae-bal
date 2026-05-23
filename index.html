@@ -28,15 +28,17 @@
             font-family: 'Inter', sans-serif !important;
         }
 
-        /* Анимация плавного смещения волн по горизонтали */
-        @keyframes waveLeft {
+        /* Анимация движения влево (для передней волны) */
+        @keyframes waveMoveLeft {
             0% { transform: translateX(0); }
-            50% { transform: translateX(-25%); }
+            50% { transform: translateX(-35%); }
             100% { transform: translateX(0); }
         }
-        @keyframes waveRight {
+
+        /* Анимация движения вправо (для задней волны в противоположную сторону) */
+        @keyframes waveMoveRight {
             0% { transform: translateX(-50%); }
-            50% { transform: translateX(-25%); }
+            50% { transform: translateX(-15%); }
             100% { transform: translateX(-50%); }
         }
 
@@ -57,24 +59,24 @@
             height: 100%;
         }
 
-        /* Задний слой (более прозрачный и медленный) */
+        /* Задний слой (более прозрачный, плывет слева направо) */
         .wave-back {
             fill: #ffffff;
-            opacity: 0.02; /* Мягкое глубинное свечение */
-            animation: waveRight 24s ease-in-out infinite;
+            opacity: 0.02;
+            animation: waveMoveRight 26s ease-in-out infinite;
         }
 
-        /* Передний слой (сделали темнее и субтильнее) */
+        /* Передний слой (более темный, плывет в противоположную сторону справа налево) */
         .wave-front {
             fill: #ffffff;
-            opacity: 0.04; /* Уменьшили яркость для более темного эффекта */
-            animation: waveLeft 18s ease-in-out infinite;
+            opacity: 0.04;
+            animation: waveMoveLeft 20s ease-in-out infinite;
         }
     </style>
 </head>
 <body class="h-screen w-full flex flex-col justify-between items-center relative overflow-hidden">
     
-    <!-- ЗАГЛОВАК В САМОМ ВЕРХУ ПО ОСИ ИКС С ЛОГОТИПОМ СЛЕВА -->
+    <!-- ЗАГЛОВОК В САМОМ ВЕРХУ ПО ОСИ ИКС С ЛОГОТИПОМ СЛЕВА -->
     <header class="w-full flex justify-center items-center pt-3 z-10 shrink-0">
         <div class="flex items-center space-x-2">
             <!-- Логотип слева от текста из папки public/icons/logo.png без фона -->
@@ -98,14 +100,14 @@
     <!-- СВОБОДНАЯ ЦЕНТРАЛЬНАЯ ЧАСТЬ -->
     <div class="flex-grow"></div>
 
-    <!-- МЕДЛЕННЫЕ ДВУХСЛОЙНЫЕ ВОЛНЫ ВНИЗУ -->
+    <!-- МЕДЛЕННЫЕ ДВУХСЛОЙНЫЕ ВОЛНЫ ВНИЗУ (ДВИЖУТСЯ В РАЗНЫЕ СТОРОНЫ) -->
     <div class="wave-container z-0">
-        <!-- Задний слой (более прозрачный) -->
+        <!-- Задний слой (более прозрачный, плывет вправо) -->
         <svg class="wave-layer wave-back" viewBox="0 0 1200 120" preserveAspectRatio="none">
             <path d="M0,80 C150,110 350,50 500,80 C650,110 850,50 1000,80 C1150,110 1350,50 1500,80 L1500,120 L0,120 Z"></path>
         </svg>
         
-        <!-- Передний слой (более темный) -->
+        <!-- Передний слой (более темный, плывет влево) -->
         <svg class="wave-layer wave-front" viewBox="0 0 1200 120" preserveAspectRatio="none">
             <path d="M0,70 C150,40 350,100 500,70 C650,40 850,100 1000,70 C1150,40 1350,100 1500,70 L1500,120 L0,120 Z"></path>
         </svg>
