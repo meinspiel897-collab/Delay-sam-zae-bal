@@ -17,11 +17,8 @@
             margin: 0;
             overflow: hidden;
             height: 100vh;
-            display: flex;
-            flex-direction: column;
             user-select: none;
             -webkit-user-select: none;
-            box-sizing: border-box;
         }
 
         /* Шапка приложения */
@@ -38,17 +35,18 @@
             pointer-events: none;
         }
 
-        /* Главный контейнер радара — ЖЕСТКО ПО ЦЕНТРУ ЭКРАНА */
+        /* Контейнер радара (строго по центру экрана) */
         .radar-container {
             position: absolute;
-            top: 50%;
+            top: 48%; /* Чуть выше идеального центра оптически */
             left: 50%;
             transform: translate(-50%, -50%);
             width: 60vw;
             height: 60vw; 
-            max-width: 260px;
-            max-height: 260px;
+            max-width: 250px;
+            max-height: 250px;
             aspect-ratio: 1 / 1;
+            z-index: 10;
         }
 
         /* Центрирование слоев внутри радара */
@@ -119,47 +117,28 @@
             stroke-width: 1;
         }
 
-        /* --- ДЕФОРМИРОВАННЫЙ ШЛЕЙФ (Вращение строго из центра окружности) --- */
-        .radar-sweep-deformed {
+        /* --- ВРАЩЕНИЕ ЛУЧА ИЗ ЦЕНТРА --- */
+        .sweep-spinner {
             width: 100%;
             height: 100%;
-            z-index: 4;
-            pointer-events: none;
-            transform-origin: center;
+            border-radius: 50%;
+            background: conic-gradient(
+                from 0deg, 
+                transparent 40%, 
+                rgba(0, 109, 249, 0.12) 75%,
+                rgba(215, 235, 255, 0.35) 99%,
+                rgba(215, 235, 255, 0.7) 100%
+            );
             animation: sweepRotate 4s linear infinite;
-        }
-
-        /* Контейнер нижнего текстового блока */
-        .bottom-content-box {
-            position: absolute;
-            bottom: max(32px, var(--tg-safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)));
-            left: 50%;
-            transform: translateX(-50%);
-            width: 100%;
-            max-width: 330px;
-            padding: 0 24px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            z-index: 60;
+            transform-origin: 50% 50%;
         }
 
         /* АНИМАЦИИ */
         @keyframes sonarPing {
-            0% {
-                transform: scale(0);
-                opacity: 0.9;
-            }
-            50% {
-                opacity: 0.5;
-            }
-            90% {
-                opacity: 0;
-            }
-            100% {
-                transform: scale(1.1);
-                opacity: 0;
-            }
+            0% { transform: scale(0); opacity: 0.9; }
+            50% { opacity: 0.5; }
+            90% { opacity: 0; }
+            100% { transform: scale(1.1); opacity: 0; }
         }
         @keyframes rotateClock {
             0% { transform: translate(-50%, -50%) rotate(0deg); }
@@ -170,8 +149,8 @@
             100% { transform: translate(-50%, -50%) rotate(0deg); }
         }
         @keyframes sweepRotate {
-            0% { transform: translate(-50%, -50%) rotate(0deg); }
-            100% { transform: translate(-50%, -50%) rotate(360deg); }
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
     </style>
 </head>
@@ -192,65 +171,71 @@
         </div>
     </header>
 
-    <!-- Главная рабочая зона радара (Идеально по центру экрана) -->
-    <div class="radar-container">
+    <!-- Основной слой (Абсолютное центрирование радара) -->
+    <main class="w-full h-full relative">
         
-        <!-- Слой 3 (Задний фон) -->
-        <svg class="layer-absolute circle-layer-3" viewBox="0 0 200 200">
-            <path d="M 100, 2 C 140, 10 180, 25 198, 90 C 215, 155 150, 195 100, 198 C 50, 201 -5, 150 2, 90 C 10, 30 60, -5 100, 2 Z" />
-        </svg>
+        <!-- Зона радара (остается на месте) -->
+        <div class="radar-container">
+            
+            <!-- Слой 3 (Задний фон) -->
+            <svg class="layer-absolute circle-layer-3" viewBox="0 0 200 200">
+                <path d="M 100, 2 C 140, 10 180, 25 198, 90 C 215, 155 150, 195 100, 198 C 50, 201 -5, 150 2, 90 C 10, 30 60, -5 100, 2 Z" />
+            </svg>
 
-        <!-- Слой 2 (Средний) -->
-        <svg class="layer-absolute circle-layer-2" viewBox="0 0 200 200">
-            <path d="M 100, 5 C 135, 2 190, 30 195, 100 C 200, 170 145, 198 100, 195 C 55, 192 2, 160 5, 100 C 8, 40 65, 8 100, 5 Z" />
-        </svg>
+            <!-- Слой 2 (Средний) -->
+            <svg class="layer-absolute circle-layer-2" viewBox="0 0 200 200">
+                <path d="M 100, 5 C 135, 2 190, 30 195, 100 C 200, 170 145, 198 100, 195 C 55, 192 2, 160 5, 100 C 8, 40 65, 8 100, 5 Z" />
+            </svg>
 
-        <!-- Слой 1 (Передний основной круг) -->
-        <svg class="layer-absolute circle-layer-1" viewBox="0 0 200 200">
-            <path d="M 100, 5 C 150, 7 193, 50 195, 100 C 197, 150 150, 193 100, 195 C 50, 197 7, 150 5, 100 C 3, 50 50, 3 100, 5 Z" />
-        </svg>
+            <!-- Слой 1 (Передний основной круг) -->
+            <svg class="layer-absolute circle-layer-1" viewBox="0 0 200 200">
+                <path d="M 100, 5 C 150, 7 193, 50 195, 100 C 197, 150 150, 193 100, 195 C 50, 197 7, 150 5, 100 C 3, 50 50, 3 100, 5 Z" />
+            </svg>
 
-        <!-- ДИНАМИЧЕСКИЕ КОЛЬЦА (Пульсируют точно из центра) -->
-        <svg class="layer-absolute pulse-ring-container" viewBox="0 0 200 200">
-            <path class="ring-pulse-1" d="M 100, 5 C 150, 7 193, 50 195, 100 C 197, 150 150, 193 100, 195 C 50, 197 7, 150 5, 100 C 3, 50 50, 3 100, 5 Z" />
-            <path class="ring-pulse-2" d="M 100, 5 C 150, 7 193, 50 195, 100 C 197, 150 150, 193 100, 195 C 50, 197 7, 150 5, 100 C 3, 50 50, 3 100, 5 Z" />
-        </svg>
+            <!-- ДИНАМИЧЕСКИЕ КОЛЬЦА -->
+            <svg class="layer-absolute pulse-ring-container" viewBox="0 0 200 200">
+                <path class="ring-pulse-1" d="M 100, 5 C 150, 7 193, 50 195, 100 C 197, 150 150, 193 100, 195 C 50, 197 7, 150 5, 100 C 3, 50 50, 3 100, 5 Z" />
+                <path class="ring-pulse-2" d="M 100, 5 C 150, 7 193, 50 195, 100 C 197, 150 150, 193 100, 195 C 50, 197 7, 150 5, 100 C 3, 50 50, 3 100, 5 Z" />
+            </svg>
 
-        <!-- СТАТИЧНЫЙ КРЕСТ -->
-        <svg class="layer-absolute radar-lines-static" viewBox="0 0 200 200">
-            <path d="M 100, 12 Q 99, 70 100.5, 100 T 100, 188" />
-            <path d="M 12, 100 Q 70, 100.5 100, 99.5 T 188, 100" />
-        </svg>
+            <!-- СТАТИЧНЫЙ КРЕСТ -->
+            <svg class="layer-absolute radar-lines-static" viewBox="0 0 200 200">
+                <path d="M 100, 12 Q 99, 70 100.5, 100 T 100, 188" />
+                <path d="M 12, 100 Q 70, 100.5 100, 99.5 T 188, 100" />
+            </svg>
 
-        <!-- ВРАЩАЮЩИЙСЯ ДЕФОРМИРОВАННЫЙ ШЛЕЙФ (Вращается из центра 100,100) -->
-        <svg class="layer-absolute radar-sweep-deformed" viewBox="0 0 200 200">
-            <foreignObject width="200" height="200">
-                <div xmlns="http://www.w3.org/1999/xhtml" style="width:100%; height:100%; background: conic-gradient(from 0deg, transparent 40%, rgba(0, 109, 249, 0.12) 75%, rgba(215, 235, 255, 0.35) 99%, rgba(215, 235, 255, 0.7) 100%); -webkit-mask: url(#maskPath); mask: url(#maskPath);">
-                    <svg viewBox="0 0 200 200" style="position:absolute; width:100%; height:100%;">
-                        <mask id="maskPath">
-                            <path d="M 100, 5 C 150, 7 193, 50 195, 100 C 197, 150 150, 193 100, 195 C 50, 197 7, 150 5, 100 C 3, 50 50, 3 100, 5 Z" fill="#fff" />
-                        </mask>
-                    </svg>
-                </div>
-            </foreignObject>
-        </svg>
+            <!-- ВРАЩАЮЩИЙСЯ ЛУЧ (Вращается сам градиент внутри статической маски деформированного круга) -->
+            <svg class="layer-absolute" viewBox="0 0 200 200" style="width:100%; height:100%; z-index:4; pointer-events:none;">
+                <defs>
+                    <clipPath id="radarClip">
+                        <path d="M 100, 5 C 150, 7 193, 50 195, 100 C 197, 150 150, 193 100, 195 C 50, 197 7, 150 5, 100 C 3, 50 50, 3 100, 5 Z" />
+                    </clipPath>
+                </defs>
+                <g clip-path="url(#radarClip)">
+                    <foreignObject x="0" y="0" width="200" height="200">
+                        <div xmlns="http://www.w3.org/1999/xhtml" class="sweep-spinner"></div>
+                    </foreignObject>
+                </g>
+            </svg>
 
-    </div>
-
-    <!-- Текстовый блок и кнопка снизу (Надежные отступы, радар не двигают) -->
-    <div class="bottom-content-box">
-        <div class="text-sm font-medium leading-relaxed text-white/85 text-center mb-6">
-            Самое время поймать чей-нибудь кораблик! Сейчас в океане 
-            <!-- Выделенный объект 999: +5px шире, чуть ярче фон (white/18), прозрачность 0.85 -->
-            <span class="inline-block bg-white/18 text-white/85 font-semibold px-[5px] mx-0.5 rounded-[6px] tracking-wide">999</span> 
-            дрейфующих бортов, какой достанешь ты?
         </div>
-        
-        <!-- Акцентная кнопка Telegram Web App -->
-        <button class="w-full py-3.5 px-6 rounded-full text-[15px] font-semibold tracking-wide transition-transform active:scale-[0.98] bg-[#006DF9] text-white bg-[--tg-theme-button-color] text-[--tg-theme-button-text-color]">
-            Поймать что-нибудь
-        </button>
-    </div>
+
+        <!-- Нижняя темная плашка (Абсолютное позиционирование с отступами по 15px) -->
+        <div class="absolute bottom-[15px] left-[15px] right-[15px] bg-[#1C1C1E] rounded-[24px] p-[15px] pt-[20px] flex flex-col z-20 shadow-xl border border-white/5">
+            <p class="text-[14px] leading-relaxed font-medium text-white/85 text-center px-1 mb-5">
+                Самое время поймать чей-нибудь кораблик! Сейчас в океане 
+                <!-- Выделенный бейдж 999: Фон 0.2, полностью круглые углы, 5px по краям -->
+                <span class="inline-flex items-center justify-center bg-white/20 text-white/95 px-[5px] py-[2px] mx-[2px] rounded-full font-semibold tracking-wide" style="transform: translateY(-1px);">999</span> 
+                дрейфующих бортов, какой достанешь ты?
+            </p>
+            
+            <!-- Кнопка Telegram (С круглыми углами, прижата вниз, 15px отступа обеспечивает родительский padding) -->
+            <button class="w-full py-3.5 px-6 rounded-full text-[15px] font-semibold tracking-wide transition-transform active:scale-[0.98] bg-[#006DF9] text-white bg-[--tg-theme-button-color] text-[--tg-theme-button-text-color]">
+                Поймать что-нибудь
+            </button>
+        </div>
+
+    </main>
 
     <script>
         const tg = window.Telegram.WebApp;
