@@ -3,7 +3,7 @@ import logging
 import asyncio
 import threading
 import html
-from flask import Flask
+from flask import Flask, send_from_directory
 from aiogram import Bot, Dispatcher, types, F
 from aiogram.filters import Command
 from aiogram.utils.keyboard import InlineKeyboardBuilder
@@ -23,14 +23,22 @@ dp = Dispatcher()
 # Данные для бота
 WHALE_STICKER_ID = "CAACAgEAAxkBAAFKV1RqEF_JacpzbFDVm0tHXYhFeNMFegACGwMAArAHGESRLvZwzZJ9sjsE"
 OFFICIAL_CHANNEL_URL = "https://t.me/samosoboy_official"
-MINI_APP_URL = "https://t.me/samosoboy_bot/app"  # Ссылка на Mini App твоего бота
+
+# Указываем адрес твоего Mini App.
+# ВАЖНО: Telegram строго требует HTTPS-протокол. 
+# Мы настроили Flask так, что он раздает созданный нами index.html.
+# На Render твой домен будет иметь вид: https://<твое-имя-на-рендер>.onrender.com
+RENDER_EXTERNAL_URL = os.getenv("RENDER_EXTERNAL_URL", "https://delay-sam-zae-bal.onrender.com")
+MINI_APP_URL = RENDER_EXTERNAL_URL  # Теперь кнопка будет открывать этот же веб-сервис на Render!
 
 # --- НАСТРОЙКА FLASK СЕРВЕРА ДЛЯ RENDER WEB SERVICE ---
-flask_app = Flask(__name__)
+# Flask теперь не просто держит порт, а отдает красивый index.html для твоего Mini App!
+flask_app = Flask(__name__, static_folder='.')
 
 @flask_app.route('/')
 def home():
-    return "Бот СамоСобой запущен и готов к плаванию!", 200
+    # Отдаем файл index.html, который лежит в той же папке
+    return send_from_directory('.', 'index.html')
 
 @flask_app.route('/healthz')
 def healthz():
@@ -162,8 +170,7 @@ async def process_finish(callback: types.CallbackQuery):
     # 3. Делаем небольшую паузу
     await asyncio.sleep(0.5)
 
-    # 4. Финальный текст БЕЗ тега <blockquote> для максимальной совместимости.
-    # Мы используем красивую моноширинную разметку через <code> или стильный юникод-символ цитирования '▎'
+    # 4. Финальный текст
     final_text = (
         f"С регистрацией, {safe_name}! 🎉\n\n"
         "Отправь свой первый кораблик в плавание через приложение или с помощью бота, если так удобнее 😉\n\n"
@@ -183,7 +190,6 @@ async def process_finish(callback: types.CallbackQuery):
         )
         logging.info("Финальное приветственное сообщение успешно отправлено.")
     except Exception as e:
-        # Если отправка всё-таки упадет, в логах Render появится точная причина ошибки!
         logging.error(f"КРИТИЧЕСКАЯ ОШИБКА ОТПРАВКИ СООБЩЕНИЯ: {e}")
 
 @dp.callback_query(F.data == "send_boat")
