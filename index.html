@@ -8,7 +8,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Inter', sans-serif !important;
@@ -34,124 +34,92 @@
             pointer-events: none;
         }
 
-        /* Главный контейнер радара */
-        .radar-container {
+        /* Контейнер Радара — фиксированный центр */
+        .radar-box {
             position: absolute;
-            top: 45%; 
+            top: 40%; 
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 60vw;
-            height: 60vw; 
-            max-width: 250px;
-            max-height: 250px;
+            width: 64vw;
+            height: 64vw; 
+            max-width: 240px;
+            max-height: 240px;
             aspect-ratio: 1 / 1;
             z-index: 10;
         }
 
-        .layer-absolute {
+        /* Абсолютное центрирование слоев относительно коробки */
+        .layer-center {
             position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            transform-origin: center;
-            overflow: visible;
-        }
-
-        /* --- ВОЛНОВЫЕ КРУГИ --- */
-        .circle-layer-1 {
-            width: 100%; height: 100%;
-            fill: #006DF9; 
-            opacity: 0.75; 
-            z-index: 1;
-            animation: rotateCounter 25s linear infinite;
-        }
-        .circle-layer-2 {
-            width: 114%; height: 114%;
-            fill: #006DF9; 
-            opacity: 0.35; 
-            z-index: 1;
-            animation: rotateClock 18s linear infinite;
-        }
-        .circle-layer-3 {
-            width: 125%; height: 125%; 
-            fill: #006DF9; 
-            opacity: 0.15; 
-            z-index: 1;
-            animation: rotateCounter 30s linear infinite;
-        }
-
-        /* --- ДИНАМИЧЕСКИЕ ИМПУЛЬСНЫЕ КОЛЬЦА --- */
-        .pulse-ring-container {
+            top: 0;
+            left: 0;
             width: 100%;
             height: 100%;
-            z-index: 2;
-            pointer-events: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
-        .pulse-ring-container path {
+
+        /* --- ОРГАНИЧЕСКИЕ ВОЛНЫ (ФОН) --- */
+        .wave-1 { width: 100%; height: 100%; fill: #006DF9; opacity: 0.70; animation: rotCounter 22s linear infinite; }
+        .wave-2 { width: 112%; height: 112%; fill: #006DF9; opacity: 0.30; animation: rotClock 16s linear infinite; }
+        .wave-3 { width: 124%; height: 124%; fill: #006DF9; opacity: 0.12; animation: rotCounter 28s linear infinite; }
+
+        /* --- ИМПУЛЬСНЫЕ КОЛЬЦА --- */
+        .pulse-svg path {
             fill: none;
-            stroke: rgba(215, 235, 255, 0.4);
-            stroke-width: 1.0;
+            stroke: rgba(215, 235, 255, 0.35);
+            stroke-width: 1.2;
             transform-origin: 100px 100px;
         }
-        
-        .ring-pulse-1 { animation: sonarPing 3.2s cubic-bezier(0.1, 0.4, 0.2, 1) infinite; }
-        .ring-pulse-2 { animation: sonarPing 3.2s cubic-bezier(0.1, 0.4, 0.2, 1) infinite; animation-delay: 1.6s; }
+        .p-ring-1 { animation: sonar 3s cubic-bezier(0.1, 0.4, 0.2, 1) infinite; }
+        .p-ring-2 { animation: sonar 3s cubic-bezier(0.1, 0.4, 0.2, 1) infinite; animation-delay: 1.5s; }
 
-        /* --- СТАТИЧНЫЙ КРЕСТ --- */
-        .radar-lines-static {
+        /* --- СТАТИЧЕСКИЕ ОСИ --- */
+        .axes-svg path { fill: none; stroke: rgba(215, 235, 255, 0.18); stroke-width: 1; }
+
+        /* --- ЖЕЛЕЗОБЕТОННЫЙ ЛУЧ (ЧИСТЫЙ CSS СЛОЙ) --- */
+        .radar-sweep-beam {
             width: 100%;
             height: 100%;
-            z-index: 3;
-            pointer-events: none;
-        }
-        .radar-lines-static path {
-            fill: none;
-            stroke: rgba(215, 235, 255, 0.22);
-            stroke-width: 1;
+            border-radius: 50%;
+            background: conic-gradient(
+                from 0deg, 
+                transparent 50%, 
+                rgba(0, 109, 249, 0.08) 75%, 
+                rgba(0, 109, 249, 0.45) 96%, 
+                rgba(215, 235, 255, 0.85) 100%
+            );
+            animation: sweep 3.5s linear infinite;
+            transform-origin: center center;
         }
 
-        /* --- ТОЧКИ НА РАДАРЕ --- */
-        .radar-dot {
-            fill: #d7ebff;
-            stroke: #006df9;
-            stroke-width: 0.5;
+        /* Маленькие четкие точки целей */
+        .target-dot {
+            position: absolute;
+            width: 4.5px;
+            height: 4.5px;
+            background-color: #E6F2FF;
+            border: 1px solid #0050B7;
+            border-radius: 50%;
             opacity: 0;
-            transition: opacity 0.25s ease-out;
+            transform: scale(0.6);
+            transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1), transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 15;
         }
-        .radar-dot.visible {
+        .target-dot.active {
             opacity: 1;
-        }
-
-        /* --- ИДЕАЛЬНОЕ ВРАЩЕНИЕ ЛУЧА ИЗ НАСТОЯЩЕГО ЦЕНТРА СИСТЕМЫ КООРДИНАТ --- */
-        .sweep-layer {
-            width: 100%;
-            height: 100%;
-            z-index: 4;
-            pointer-events: none;
-        }
-        .sweep-rotating-group {
-            transform-origin: 100px 100px;
-            animation: sweepRotate 4s linear infinite;
+            transform: scale(1);
         }
 
         /* АНИМАЦИИ */
-        @keyframes sonarPing {
-            0% { transform: scale(0); opacity: 0.9; }
-            50% { opacity: 0.5; }
-            90% { opacity: 0; }
-            100% { transform: scale(1.1); opacity: 0; }
-        }
-        @keyframes rotateClock {
-            0% { transform: translate(-50%, -50%) rotate(0deg); }
-            100% { transform: translate(-50%, -50%) rotate(360deg); }
-        }
-        @keyframes rotateCounter {
-            0% { transform: translate(-50%, -50%) rotate(360deg); }
-            100% { transform: translate(-50%, -50%) rotate(0deg); }
-        }
-        @keyframes sweepRotate {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        @keyframes sweep { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes rotClock { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes rotCounter { 0% { transform: rotate(360deg); } 100% { transform: rotate(0deg); } }
+        @keyframes sonar {
+            0% { transform: scale(0); opacity: 0.8; }
+            60% { opacity: 0.4; }
+            100% { transform: scale(1.08); opacity: 0; }
         }
     </style>
 </head>
@@ -160,96 +128,96 @@
     <!-- Шапка приложения -->
     <header>
         <div class="flex items-center space-x-2.5">
-            <img 
-                src="public/icons/logo.png" 
-                alt="Логотип" 
-                class="w-5 h-5 object-contain"
-                onerror="this.style.display='none'"
-            />
-            <h1 class="text-base font-semibold tracking-tight text-white">
-                СамоСобой
-            </h1>
+            <img src="public/icons/logo.png" alt="Логотип" class="w-5 h-5 object-contain" onerror="this.style.display='none'"/>
+            <h1 class="text-base font-semibold tracking-tight text-white">СамоСобой</h1>
         </div>
     </header>
 
     <main class="w-full h-full relative">
         
-        <!-- Контейнер Радара -->
-        <div class="radar-container" id="radarBody">
+        <!-- МОДУЛЬ РАДАРА -->
+        <div class="radar-box" id="radarZone">
             
-            <!-- Слой 3 (Задний) -->
-            <svg class="layer-absolute circle-layer-3" viewBox="0 0 200 200">
-                <path d="M 100, 2 C 140, 10 180, 25 198, 90 C 215, 155 150, 195 100, 198 C 50, 201 -5, 150 2, 90 C 10, 30 60, -5 100, 2 Z" />
-            </svg>
+            <!-- Слой волны 3 -->
+            <div class="layer-center z-1">
+                <svg class="wave-3" viewBox="0 0 200 200"><path d="M 100, 2 C 140, 10 180, 25 198, 90 C 215, 155 150, 195 100, 198 C 50, 201 -5, 150 2, 90 C 10, 30 60, -5 100, 2 Z" /></svg>
+            </div>
 
-            <!-- Слой 2 (Средний) -->
-            <svg class="layer-absolute circle-layer-2" viewBox="0 0 200 200">
-                <path d="M 100, 5 C 135, 2 190, 30 195, 100 C 200, 170 145, 198 100, 195 C 55, 192 2, 160 5, 100 C 8, 40 65, 8 100, 5 Z" />
-            </svg>
+            <!-- Слой волны 2 -->
+            <div class="layer-center z-2">
+                <svg class="wave-2" viewBox="0 0 200 200"><path d="M 100, 5 C 135, 2 190, 30 195, 100 C 200, 170 145, 198 100, 195 C 55, 192 2, 160 5, 100 C 8, 40 65, 8 100, 5 Z" /></svg>
+            </div>
 
-            <!-- Слой 1 (Передний основной круг) -->
-            <svg class="layer-absolute circle-layer-1" viewBox="0 0 200 200">
-                <path d="M 100, 5 C 150, 7 193, 50 195, 100 C 197, 150 150, 193 100, 195 C 50, 197 7, 150 5, 100 C 3, 50 50, 3 100, 5 Z" />
-            </svg>
+            <!-- Слой волны 1 (Основной контур) -->
+            <div class="layer-center z-3" id="mainCircleBound">
+                <svg class="wave-1" viewBox="0 0 200 200"><path d="M 100, 5 C 150, 7 193, 50 195, 100 C 197, 150 150, 193 100, 195 C 50, 197 7, 150 5, 100 C 3, 50 50, 3 100, 5 Z" /></svg>
+            </div>
 
-            <!-- ДИНАМИЧЕСКИЕ КОЛЬЦА -->
-            <svg class="layer-absolute pulse-ring-container" viewBox="0 0 200 200">
-                <path class="ring-pulse-1" d="M 100, 5 C 150, 7 193, 50 195, 100 C 197, 150 150, 193 100, 195 C 50, 197 7, 150 5, 100 C 3, 50 50, 3 100, 5 Z" />
-                <path class="ring-pulse-2" d="M 100, 5 C 150, 7 193, 50 195, 100 C 197, 150 150, 193 100, 195 C 50, 197 7, 150 5, 100 C 3, 50 50, 3 100, 5 Z" />
-            </svg>
+            <!-- Кольца пульсации -->
+            <div class="layer-center z-4 pointer-events-none">
+                <svg class="pulse-svg w-full h-full" viewBox="0 0 200 200">
+                    <path class="p-ring-1" d="M 100, 5 C 150, 7 193, 50 195, 100 C 197, 150 150, 193 100, 195 C 50, 197 7, 150 5, 100 C 3, 50 50, 3 100, 5 Z" />
+                    <path class="p-ring-2" d="M 100, 5 C 150, 7 193, 50 195, 100 C 197, 150 150, 193 100, 195 C 50, 197 7, 150 5, 100 C 3, 50 50, 3 100, 5 Z" />
+                </svg>
+            </div>
 
-            <!-- СТАТИЧНЫЙ КРЕСТ -->
-            <svg class="layer-absolute radar-lines-static" viewBox="0 0 200 200">
-                <path d="M 100, 12 Q 99, 70 100.5, 100 T 100, 188" />
-                <path d="M 12, 100 Q 70, 100.5 100, 99.5 T 188, 100" />
-            </svg>
+            <!-- Перекрестье осей -->
+            <div class="layer-center z-5 pointer-events-none">
+                <svg class="axes-svg w-full h-full" viewBox="0 0 200 200">
+                    <path d="M 100, 12 Q 99, 70 100.5, 100 T 100, 188" />
+                    <path d="M 12, 100 Q 70, 100.5 100, 99.5 T 188, 100" />
+                </svg>
+            </div>
 
-            <!-- ИНТЕРАКТИВНЫЙ СЛОЙ ТОЧЕК (Управляется скриптом) -->
-            <svg class="layer-absolute" viewBox="0 0 200 200" style="width:100%; height:100%; z-index:3.5; pointer-events:none;">
-                <!-- Четверть 1 -->
-                <circle id="dot-1-1" class="radar-dot" cx="135" cy="55" r="2.2" />
-                <circle id="dot-1-2" class="radar-dot" cx="155" cy="75" r="1.8" />
-                <!-- Четверть 2 -->
-                <circle id="dot-2-1" class="radar-dot" cx="145" cy="140" r="2" />
-                <circle id="dot-2-2" class="radar-dot" cx="120" cy="155" r="2.5" />
-                <circle id="dot-2-3" class="radar-dot" cx="160" cy="115" r="1.6" />
-                <!-- Четверть 3 -->
-                <circle id="dot-3-1" class="radar-dot" cx="55" cy="135" r="2.1" />
-                <circle id="dot-3-2" class="radar-dot" cx="70" cy="150" r="1.7" />
-                <!-- Четверть 4 -->
-                <circle id="dot-4-1" class="radar-dot" cx="45" cy="70" r="2.3" />
-                <circle id="dot-4-2" class="radar-dot" cx="65" cy="48" r="1.9" />
-            </svg>
+            <!-- ВРАЩАЮЩИЙСЯ ЛУЧ (Изолированный чистый HTML слой) -->
+            <div class="layer-center z-10 pointer-events-none">
+                <div class="radar-sweep-beam" id="beamElement"></div>
+            </div>
 
-            <!-- ЧИСТЫЙ SVG ЛУЧ (Вращение строго из точки 100,100 по вектору маски) -->
-            <svg class="layer-absolute sweep-layer" viewBox="0 0 200 200">
-                <defs>
-                    <clipPath id="radarShapeClip">
-                        <path d="M 100, 5 C 150, 7 193, 50 195, 100 C 197, 150 150, 193 100, 195 C 50, 197 7, 150 5, 100 C 3, 50 50, 3 100, 5 Z" />
-                    </clipPath>
-                </defs>
-                
-                <g clip-path="url(#radarShapeClip)">
-                    <g class="sweep-rotating-group">
-                        <foreignObject x="-50" y="-50" width="300" height="300">
-                            <div xmlns="http://www.w3.org/1999/xhtml" style="width:100%; height:100%; background: conic-gradient(from 100px 100px, transparent 40%, rgba(0, 109, 249, 0.15) 75%, rgba(215, 235, 255, 0.4) 99%, rgba(215, 235, 255, 0.75) 100%); border-radius:50%;"></div>
-                        </foreignObject>
-                    </g>
-                </g>
-            </svg>
+            <!-- ДИНАМИЧЕСКИЕ ТОЧКИ ЦЕЛЕЙ (Координаты внутри первой четверти) -->
+            <div id="dot-q1-1" class="target-dot" style="top: 25%; left: 68%;"></div>
+            <div id="dot-q1-2" class="target-dot" style="top: 38%; left: 78%;"></div>
+            
+            <div id="dot-q2-1" class="target-dot" style="top: 72%; left: 70%;"></div>
+            <div id="dot-q2-2" class="target-dot" style="top: 60%; left: 82%;"></div>
+            <div id="dot-q2-3" class="target-dot" style="top: 78%; left: 56%;"></div>
+            
+            <div id="dot-q3-1" class="target-dot" style="top: 68%; left: 28%;"></div>
+            <div id="dot-q3-2" class="target-dot" style="top: 76%; left: 40%;"></div>
+            
+            <div id="dot-q4-1" class="target-dot" style="top: 32%; left: 24%;"></div>
+            <div id="dot-q4-2" class="target-dot" style="top: 22%; left: 42%;"></div>
 
         </div>
 
-        <!-- Нижняя темная плашка (Без лишних бордеров и контуров, мягкие углы) -->
-        <div class="absolute bottom-[15px] left-[15px] right-[15px] bg-[#1C1C1E] rounded-[24px] border-none p-[15px] pt-[20px] flex flex-col z-20 shadow-2xl">
-            <p class="text-[14px] leading-relaxed font-medium text-white/85 text-center px-1 mb-5">
-                Самое время поймать чей-нибудь кораблик! Сейчас в океане 
-                <span class="inline-flex items-center justify-center bg-white/20 text-white/95 px-[6px] py-[1.5px] mx-[2px] rounded-full font-semibold text-[13px] tracking-wide" style="transform: translateY(-1px);">999</span> 
-                дрейфующих бортов, какой достанешь ты?
-            </p>
+        <!-- УВЕЛИЧЕННАЯ НИЖНЯЯ ПАНЕЛЬ (Полностью без контура, идеальные скругления) -->
+        <div class="absolute bottom-[15px] left-[15px] right-[15px] h-[275px] bg-[#1C1C1E] rounded-[28px] p-4 flex flex-col justify-between z-20 shadow-2xl overflow-hidden select-none">
             
-            <!-- Кнопка Telegram -->
-            <button class="w-full py-3.5 px-6 rounded-full text-[15px] font-semibold tracking-wide transition-transform active:scale-[0.98] bg-[#006DF9] text-white bg-[--tg-theme-button-color] text-[--tg-theme-button-text-color]">
+            <!-- ЧУЗБАР ИЗ КОНФИГА (Без контуров, чистый премиальный بلور / стеклянный вид) -->
+            <div class="w-full bg-white/[0.04] rounded-full p-1 flex relative items-center h-11">
+                <!-- Активный ползунок бэкграунда -->
+                <div id="chooser-bg" class="absolute inset-y-1 left-1 w-[calc(50%-4px)] bg-white/[0.09] backdrop-blur-xl rounded-full z-0 transition-transform duration-300 ease-[cubic-bezier(0.25,1,0.5,1)]"></div>
+                
+                <!-- Кнопки вкладок -->
+                <button onclick="switchTab('plugins', this)" class="flex-1 h-full relative z-10 text-[13.5px] font-semibold tracking-tight text-white text-center">
+                    Кораблики
+                </button>
+                <button onclick="switchTab('developers', this)" class="flex-1 h-full relative z-10 text-[13.5px] font-semibold tracking-tight text-white/30 text-center">
+                    Друзья (0)
+                </button>
+            </div>
+
+            <!-- Текстовое описание и счетчик -->
+            <div class="flex-1 flex items-center justify-center px-2 py-3">
+                <p class="text-[14px] leading-relaxed font-medium text-white/80 text-center">
+                    Самое время поймать чей-нибудь кораблик! Сейчас в океане 
+                    <span class="inline-flex items-center justify-center bg-white/20 text-white px-[6px] py-[1.5px] mx-[2px] rounded-full font-bold text-[13px] tracking-wide" style="transform: translateY(-0.5px);">999</span> 
+                    дрейфующих бортов, какой достанешь ты?
+                </p>
+            </div>
+            
+            <!-- Главная кнопка Telegram -->
+            <button class="w-full py-3.5 px-6 rounded-full text-[15px] font-semibold tracking-wide transition-all active:scale-[0.98] bg-[#006DF9] text-white bg-[--tg-theme-button-color] text-[--tg-theme-button-text-color]">
                 Поймать что-нибудь
             </button>
         </div>
@@ -257,62 +225,93 @@
     </main>
 
     <script>
-        const tg = window.Telegram.WebApp;
-        tg.ready();
-        
-        tg.expand();
-        if (tg.requestFullscreen) {
-            tg.requestFullscreen();
+        // Инициализация Telegram WebApp
+        const tg = window.Telegram?.WebApp;
+        if (tg) {
+            tg.ready();
+            tg.expand();
+            if (tg.requestFullscreen) tg.requestFullscreen();
+            tg.setHeaderColor('#000000');
+            tg.setBackgroundColor('#000000');
         }
-        
-        tg.setHeaderColor('#000000');
-        tg.setBackgroundColor('#000000');
 
-        // Логика последовательного появления точек по ходу движения луча
-        const dots = {
-            1: [document.getElementById('dot-1-1'), document.getElementById('dot-1-2')],
-            2: [document.getElementById('dot-2-1'), document.getElementById('dot-2-2'), document.getElementById('dot-2-3')],
-            3: [document.getElementById('dot-3-1'), document.getElementById('dot-3-2')],
-            4: [document.getElementById('dot-4-1'), document.getElementById('dot-4-2')]
+        // Логика переключения табов (Choose-bar)
+        function switchTab(view, btn) {
+            if (tg?.HapticFeedback) {
+                tg.HapticFeedback.impactOccurred("light");
+            }
+            
+            const bg = document.getElementById('chooser-bg');
+            const buttons = btn.parentNode.querySelectorAll('button');
+            
+            // Сброс стилей текста у всех кнопок
+            buttons.forEach(b => {
+                b.classList.remove('text-white');
+                b.classList.add('text-white/30');
+            });
+            
+            // Активация выбранной кнопки
+            btn.classList.remove('text-white/30');
+            btn.classList.add('text-white');
+            
+            // Анимация перемещения плашки
+            if (view === 'plugins') {
+                bg.style.transform = 'translateX(0%)';
+            } else {
+                bg.style.transform = 'translateX(100%)';
+                // Корректируем смещение с учетом внутренних отступов (p-1)
+                const containerWidth = btn.parentNode.offsetWidth;
+                const offset = (containerWidth / 2) - 6;
+                bg.style.transform = `translateX(${offset}px)`;
+            }
+        }
+
+        // Сбор групп точек по четвертям (I, II, III, IV)
+        const quadrants = {
+            1: [document.getElementById('dot-q1-1'), document.getElementById('dot-q1-2')],
+            2: [document.getElementById('dot-q2-1'), document.getElementById('dot-q2-2'), document.getElementById('dot-q2-3')],
+            3: [document.getElementById('dot-q3-1'), document.getElementById('dot-q3-2')],
+            4: [document.getElementById('dot-q4-1'), document.getElementById('dot-q4-2')]
         };
 
-        let currentAngle = 0;
-        let lastQuadrant = 0;
+        // Высокоточный трекинг угла вращения луча для циклического зажигания точек
+        const beam = document.getElementById('beamElement');
+        let lastQ = 0;
+        
+        // Время анимации sweep в CSS равно 3.5 секундам
+        const animationDuration = 3500; 
+        const startTime = performance.now();
 
-        function updateRadarScan() {
-            // Анимация идет 4 секунды (360 градусов) -> 90 градусов в секунду
-            currentAngle = (currentAngle + 1.5) % 360; 
-            
-            // Определяем текущую четверть луча
-            let quadrant = 1;
-            if (currentAngle >= 0 && currentAngle < 90) quadrant = 1;
-            else if (currentAngle >= 90 && currentAngle < 180) quadrant = 2;
-            else if (currentAngle >= 180 && currentAngle < 270) quadrant = 3;
-            else if (currentAngle >= 270 && currentAngle < 360) quadrant = 4;
+        function trackingLoop(timestamp) {
+            const elapsed = (timestamp - startTime) % animationDuration;
+            const currentAngle = (elapsed / animationDuration) * 360;
 
-            if (quadrant !== lastQuadrant) {
-                // Плавно зажигаем точки в текущей четверти
-                dots[quadrant].forEach(dot => {
-                    if(dot) dot.classList.add('visible');
-                });
+            // Корректное определение четверти по ходу часовой стрелки
+            let activeQ = 1;
+            if (currentAngle >= 0 && currentAngle < 90) activeQ = 1;
+            else if (currentAngle >= 90 && currentAngle < 180) activeQ = 2;
+            else if (currentAngle >= 180 && currentAngle < 270) activeQ = 3;
+            else if (currentAngle >= 270 && currentAngle < 360) activeQ = 4;
 
-                // Вычисляем противоположную четверть для гашения
-                let oppQuadrant = quadrant - 2;
-                if (oppQuadrant <= 0) oppQuadrant += 4;
+            if (activeQ !== lastQ) {
+                // Включаем точки в текущей четверти, куда зашел луч
+                quadrants[activeQ].forEach(dot => { if(dot) dot.classList.add('active'); });
 
-                // Плавно гасим точки на противоположной стороне
-                dots[oppQuadrant].forEach(dot => {
-                    if(dot) dot.classList.remove('visible');
-                });
+                // Вычисляем строго противоположную четверть для мгновенного гашения
+                let targetToHide = activeQ - 2;
+                if (targetToHide <= 0) targetToHide += 4;
 
-                lastQuadrant = quadrant;
+                // Гасим противоположную сторону
+                quadrants[targetToHide].forEach(dot => { if(dot) dot.classList.remove('active'); });
+
+                lastQ = activeQ;
             }
 
-            requestAnimationFrame(updateRadarScan);
+            requestAnimationFrame(trackingLoop);
         }
-
-        // Запуск трекера сканирования
-        setTimeout(updateRadarScan, 200);
+        
+        // Плавный пуск трекера сканирования
+        requestAnimationFrame(trackingLoop);
     </script>
 </body>
 </html>
