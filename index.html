@@ -6,8 +6,8 @@
     <title>СамоСобой</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Подключаем официальный плеер Lottie -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
+    <!-- Подключаем плеер для Lottie JSON анимаций -->
+    <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -25,14 +25,14 @@
             -webkit-user-select: none;
         }
 
-        /* Контейнер радара (Сделали крупнее) */
+        /* Главный контейнер радара и волновых кругов (увеличен до 72vw) */
         .radar-container {
             position: absolute;
             top: 55%;
-            left: 50+%;
+            left: 50%;
             transform: translate(-50%, -50%);
-            width: 75vw; 
-            max-width: 300px;
+            width: 72vw;
+            max-width: 290px;
             aspect-ratio: 1 / 1;
             display: flex;
             align-items: center;
@@ -45,7 +45,7 @@
             fill: #006DF9;
         }
 
-        /* 1. ПЕРЕДНИЙ КРУГ — теперь почти идеально ровный */
+        /* 1. ПЕРЕДНИЙ КРУГ — Почти не искажен, идеальная форма */
         .circle-layer-1 {
             width: 100%;
             height: 100%;
@@ -54,57 +54,56 @@
             z-index: 3;
         }
 
-        /* 2. СРЕДНИЙ КРУГ — волнообразный */
+        /* 2. СРЕДНИЙ КРУГ — Чуть крупнее, со средними изгибами */
         .circle-layer-2 {
-            width: 115%; 
-            height: 115%;
-            opacity: 0.4;
-            animation: rotateClockwise 16s linear infinite;
+            width: 114%;
+            height: 114%;
+            opacity: 0.45;
+            animation: rotateClockwise 18s linear infinite;
             z-index: 2;
         }
 
-        /* 3. ЗАДНИЙ КРУГ — сильно волнообразный */
+        /* 3. ЗАДНИЙ КРУГ — Максимальный волновой шлейф */
         .circle-layer-3 {
-            width: 130%; 
-            height: 130%;
-            opacity: 0.12;
-            animation: rotateCounterClockwise 22s linear infinite;
+            width: 126%;
+            height: 126%;
+            opacity: 0.15;
+            animation: rotateCounterClockwise 30s linear infinite;
             z-index: 1;
         }
 
-        /* СЕТКА РАДАРА (Поверх кругов) */
+        /* СЕТКА РАДАРА — Вписана поверх кругов, не выходит за рамки */
         .radar-grid {
             position: absolute;
-            width: 130%;
-            height: 130%;
+            width: 100%;
+            height: 100%;
             z-index: 4;
             pointer-events: none;
         }
 
-        /* СКАНЕР (Вращающийся луч радара с конусным градиентом) */
-        .radar-sweep {
+        /* ЛОТТИ КИТ — Размещен по центру, чуть меньше первого круга */
+        .lottie-whale-box {
             position: absolute;
-            width: 130%;
-            height: 130%;
-            border-radius: 50%;
-            background: conic-gradient(from 0deg, rgba(0, 109, 249, 0.4) 0deg, rgba(0, 109, 249, 0) 90deg);
+            width: 80%;
+            height: 80%;
             z-index: 5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             pointer-events: none;
-            animation: radarSweepAnimation 4s linear infinite;
+            /* Анимация появления на 5 секунд */
+            animation: whaleFading 5s ease-in-out infinite;
         }
 
-        /* КОНТЕЙНЕР ДЛЯ КИТА LOTTIE (Внутри первого круга) */
-        #lottie-whale {
-            position: absolute;
-            width: 85%;
-            height: 85%;
-            z-index: 10;
-            pointer-events: none;
-            opacity: 0; /* Изначально скрыт */
-            transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1); /* Плавное быстрое появление/исчезновение */
+        /* Тайминги: Быстрое появление -> 3 секунды горит -> Быстрое исчезновение */
+        @keyframes whaleFading {
+            0% { opacity: 0; }
+            10% { opacity: 1; }  /* Быстрое появление за 0.5 сек (10% от 5 сек) */
+            70% { opacity: 1; }  /* Держится видимым 3 секунды (до 70%) */
+            80% { opacity: 0; }  /* Быстро исчезает за 0.5 сек (до 80%) */
+            100% { opacity: 0; } /* Остаток цикла спит в темноте */
         }
 
-        /* Анимации вращения */
         @keyframes rotateClockwise {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
@@ -114,16 +113,11 @@
             0% { transform: rotate(360deg); }
             100% { transform: rotate(0deg); }
         }
-
-        @keyframes radarSweepAnimation {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
     </style>
 </head>
 <body>
 
-    <!-- Шапка адаптированная под Mini App -->
+    <!-- Шапка оптимизирована под безопасную зону Telegram Mini App -->
     <header class="w-full flex justify-center z-50 pt-[var(--tg-viewport-safe-area-inset-top,24px)]">
         <div class="flex items-center space-x-2.5 py-2">
             <img 
@@ -138,12 +132,11 @@
         </div>
     </header>
 
-    <!-- Главная зона радара -->
+    <!-- Главная рабочая зона: Радар + Живые круги + Кит -->
     <div class="radar-container">
         
-        <!-- Слой 1: Передний (Округлая правильная форма) -->
+        <!-- Слой 1: Передний (Почти идеальный ровный круг с микро-деформацией) -->
         <svg class="circle-wave-layer circle-layer-1" viewBox="0 0 200 200">
-            <!-- Минимальные искажения, форма стремится к идеальному кругу -->
             <path d="M 100, 15 
                      C 146, 15  185, 54  185, 100 
                      C 185, 146 146, 185 100, 185 
@@ -151,7 +144,7 @@
                      C 15,  54  54,  15  100, 15 Z" />
         </svg>
 
-        <!-- Слой 2: Средний (Волновые выступы) -->
+        <!-- Слой 2: Средний (Пропорционально крупнее, волновые выступы) -->
         <svg class="circle-wave-layer circle-layer-2" viewBox="0 0 200 200">
             <path d="M 100, 12 
                      C 125, 10  138, 30  154, 36 
@@ -164,7 +157,7 @@
                      C 48,  26  75,  14  100, 12 Z" />
         </svg>
 
-        <!-- Слой 3: Задний (Выразительные выступы) -->
+        <!-- Слой 3: Задний (Самый размашистый по волнам) -->
         <svg class="circle-wave-layer circle-layer-3" viewBox="0 0 200 200">
             <path d="M 100, 8
                      C 130, 5   145, 22  165, 30
@@ -177,25 +170,27 @@
                      C 62,  10  70,  11  100, 8 Z" />
         </svg>
 
-        <!-- Сетка морского радара -->
-        <svg class="radar-grid" viewBox="0 0 260 260">
-            <!-- Внешнее кольцо сетки -->
-            <circle cx="130" cy="130" r="128" fill="none" stroke="#006DF9" stroke-width="1" stroke-opacity="0.25" stroke-dasharray="4 4" />
-            <!-- Среднее кольцо -->
-            <circle cx="130" cy="130" r="95" fill="none" stroke="#006DF9" stroke-width="1" stroke-opacity="0.2" />
-            <!-- Внутреннее кольцо -->
-            <circle cx="130" cy="130" r="60" fill="none" stroke="#006DF9" stroke-width="1" stroke-opacity="0.15" />
-            
-            <!-- Перекрестие (Оси радара) -->
-            <line x1="130" y1="2" x2="130" y2="258" stroke="#006DF9" stroke-width="1" stroke-opacity="0.15" />
-            <line x1="2" y1="130" x2="258" y2="130" stroke="#006DF9" stroke-width="1" stroke-opacity="0.15" />
+        <!-- Тонкая сетка морского радара, аккуратно наложенная поверх кругов -->
+        <svg class="radar-grid" viewBox="0 0 200 200">
+            <!-- Внутренние кольца разметки -->
+            <circle cx="100" cy="100" r="70" fill="none" stroke="#006DF9" stroke-width="0.5" opacity="0.25" stroke-dasharray="3 3" />
+            <circle cx="100" cy="100" r="40" fill="none" stroke="#006DF9" stroke-width="0.5" opacity="0.2" />
+            <!-- Перекрестные визирные линии -->
+            <line x1="100" y1="10" x2="100" y2="190" stroke="#006DF9" stroke-width="0.5" opacity="0.15" />
+            <line x1="10" y1="100" x2="190" y2="100" stroke="#006DF9" stroke-width="0.5" opacity="0.15" />
         </svg>
 
-        <!-- Вращающийся луч радара -->
-        <div class="radar-sweep"></div>
-
-        <!-- Контейнер для анимации кита -->
-        <div id="lottie-whale"></div>
+        <!-- Контейнер с Lottie-анимацией Кита -->
+        <div class="lottie-whale-box">
+            <lottie-player 
+                src="public/gifs/whale.json" 
+                background="transparent" 
+                speed="1" 
+                loop 
+                autoplay
+                style="width: 100%; height: 100%;">
+            </lottie-player>
+        </div>
 
     </div>
 
@@ -203,35 +198,9 @@
         const tg = window.Telegram.WebApp;
         tg.ready();
         tg.expand();
+        
         tg.setHeaderColor('#000000');
         tg.setBackgroundColor('#000000');
-
-        // Инициализация Lottie-анимации
-        const whaleContainer = document.getElementById('lottie-whale');
-        const whaleAnimation = lottie.loadAnimation({
-            container: whaleContainer,
-            renderer: 'svg',
-            loop: true,
-            autoplay: true,
-            path: 'public/gifs/whale.json' // Путь к вашему файлу
-        });
-
-        // Цикл появления и исчезновения кита по таймингу
-        function runWhaleCycle() {
-            // Плавно и быстро показываем
-            whaleContainer.style.opacity = '1';
-
-            // Через 3 секунды плавно и быстро скрываем
-            setTimeout(() => {
-                whaleContainer.style.opacity = '0';
-            }, 3000);
-        }
-
-        // Запуск цикла каждые 5 секунд
-        setInterval(runWhaleCycle, 5000);
-        
-        // Первый запуск сразу при загрузке
-        setTimeout(runWhaleCycle, 400);
     </script>
 </body>
 </html>
