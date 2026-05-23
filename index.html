@@ -4,129 +4,113 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>СамоСобой</title>
-    <!-- Подключаем Telegram WebApp JS SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Премиальный шрифт Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
-        /* Принудительный сброс кэша стилей за счет новой версии в названии классов */
-        body, html {
+        /* Глубокий OLED черный фон */
+        body {
             font-family: 'Inter', sans-serif !important;
-            padding-top: env(safe-area-inset-top);
-            padding-bottom: env(safe-area-inset-bottom);
-            background-color: #000000 !important; /* Глубокий черный фон Apple */
+            background-color: #000000;
+            color: #ffffff;
+            margin: 0;
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
             user-select: none;
             -webkit-user-select: none;
-            overflow: hidden;
-            width: 100%;
-            height: 100%;
-            margin: 0;
         }
 
-        /* Принудительно задаем шрифт Inter для всех элементов */
-        * {
-            font-family: 'Inter', sans-serif !important;
-        }
-
-        /* Анимация движения влево (для передней волны) */
-        @keyframes waveMoveLeft {
+        /* Анимации волн */
+        @keyframes waveLeft {
             0% { transform: translateX(0); }
             50% { transform: translateX(-35%); }
             100% { transform: translateX(0); }
         }
-
-        /* Анимация движения вправо (для задней волны в противоположную сторону) */
-        @keyframes waveMoveRight {
+        @keyframes waveRight {
             0% { transform: translateX(-50%); }
             50% { transform: translateX(-15%); }
             100% { transform: translateX(-50%); }
         }
 
-        .wave-container-v26 {
+        .wave-container {
             position: absolute;
             bottom: 0;
             left: 0;
             width: 100%;
-            height: 90px; /* Умеренно низкая высота волн */
-            overflow: hidden;
+            height: 120px;
             pointer-events: none;
         }
 
-        .wave-layer-v26 {
+        .wave-layer {
             position: absolute;
             bottom: 0;
             width: 200%;
             height: 100%;
         }
 
-        /* Задний слой (более прозрачный, плывет слева направо) */
-        .wave-back-v26 {
+        .wave-back {
             fill: #ffffff;
             opacity: 0.02;
-            animation: waveMoveRight 26s ease-in-out infinite;
+            animation: waveMoveRight 30s ease-in-out infinite;
         }
 
-        /* Передний слой (более темный, плывет в противоположную сторону справа налево) */
-        .wave-front-v26 {
+        .wave-front {
             fill: #ffffff;
             opacity: 0.04;
-            animation: waveMoveLeft 20s ease-in-out infinite;
+            animation: waveMoveLeft 24s ease-in-out infinite;
+        }
+
+        @keyframes waveMoveLeft {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(-30%); }
+            100% { transform: translateX(0); }
+        }
+        @keyframes waveMoveRight {
+            0% { transform: translateX(-50%); }
+            50% { transform: translateX(-20%); }
+            100% { transform: translateX(-50%); }
         }
     </style>
 </head>
-<body class="h-screen w-full flex flex-col justify-between items-center relative overflow-hidden">
-    
-    <!-- ЗАГЛОВОК В САМОМ ВЕРХУ ПО ОСИ ИКС С ЛОГОТИПОМ СЛЕВА -->
-    <header class="w-full flex justify-center items-center pt-4 z-10 shrink-0">
-        <div class="flex items-center space-x-2">
-            <!-- Логотип слева от текста из папки public/icons/logo.png без фона -->
+<body>
+
+    <!-- Заголовок в самом верху -->
+    <header class="w-full flex justify-center pt-8 z-10">
+        <div class="flex items-center space-x-2.5">
+            <!-- Логотип слева -->
             <img 
                 src="public/icons/logo.png" 
-                alt="" 
+                alt="Логотип" 
                 class="w-5 h-5 object-contain"
-                onerror="this.style.display='none'; document.getElementById('logo-fallback-v26').style.display='block';"
+                onerror="this.style.display='none'"
             />
-            <!-- Запасной вариант, если картинка logo.png еще не загружена в репозиторий -->
-            <svg id="logo-fallback-v26" class="w-4 h-4 text-white hidden" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M4 14h16v1h-1v1h-1v1H6v-1H5v-1H4v-1zm4-1h1v-1H8v1zm3 0h1v-3h-1v3zm3 0h1v-5h-1v5z" />
-            </svg>
-            <!-- Крупный заголовок с аккуратным межбуквенным расстоянием -->
-            <span class="text-base font-bold tracking-tight text-white select-none">
+            <!-- Заголовок с плотным трекингом -->
+            <h1 class="text-base font-semibold tracking-tight text-white uppercase">
                 СамоСобой
-            </span>
+            </h1>
         </div>
     </header>
 
-    <!-- СВОБОДНАЯ ЦЕНТРАЛЬНАЯ ЧАСТЬ -->
-    <div class="flex-grow"></div>
-
-    <!-- МЕДЛЕННЫЕ ДВУХСЛОЙНЫЕ ВОЛНЫ ВНИЗУ (ДВИЖУТСЯ В РАЗНЫЕ СТОРОНЫ) -->
-    <div class="wave-container-v26 z-0">
-        <!-- Задний слой (более прозрачный, плывет вправо) -->
-        <svg class="wave-layer-v26 wave-back-v26" viewBox="0 0 1200 120" preserveAspectRatio="none">
+    <!-- Океанский слой волн -->
+    <div class="wave-container">
+        <svg class="wave-layer wave-back" viewBox="0 0 1200 120" preserveAspectRatio="none">
             <path d="M0,80 C150,110 350,50 500,80 C650,110 850,50 1000,80 C1150,110 1350,50 1500,80 L1500,120 L0,120 Z"></path>
         </svg>
-        
-        <!-- Передний слой (более темный, плывет влево) -->
-        <svg class="wave-layer-v26 wave-front-v26" viewBox="0 0 1200 120" preserveAspectRatio="none">
+        <svg class="wave-layer wave-front" viewBox="0 0 1200 120" preserveAspectRatio="none">
             <path d="M0,70 C150,40 350,100 500,70 C650,40 850,100 1000,70 C1150,40 1350,100 1500,70 L1500,120 L0,120 Z"></path>
         </svg>
     </div>
 
     <script>
-        // Инициализируем Telegram WebApp
         const tg = window.Telegram.WebApp;
-        if (tg) {
-            tg.ready();
-            tg.expand();
-            // Настраиваем цвета системного интерфейса Telegram
-            tg.setHeaderColor('#000000');
-            tg.setBackgroundColor('#000000');
-        }
+        tg.ready();
+        tg.expand();
+        tg.setHeaderColor('#000000');
+        tg.setBackgroundColor('#000000');
     </script>
 </body>
 </html>
