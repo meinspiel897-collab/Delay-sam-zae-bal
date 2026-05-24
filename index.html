@@ -34,7 +34,7 @@
             pointer-events: none;
         }
 
-        /* КРУПНЫЙ РАДАР (НОРМАЛЬНЫЙ РАЗМЕР, сдвинут оптимально вниз) */
+        /* КОНТЕЙНЕР АНИМАЦИЙ */
         .radar-box {
             position: absolute;
             top: 40%; 
@@ -59,10 +59,10 @@
             justify-content: center;
         }
 
-        /* --- ФОНОВЫЕ ОРГАНИЧЕСКИЕ СЛОИ --- */
-        .wave-1 { width: 100%; height: 100%; fill: #006DF9; opacity: 0.65; animation: rotCounter 24s linear infinite; }
-        .wave-2-new { width: 114%; height: 114%; fill: #006DF9; opacity: 0.26; animation: rotClock 18s linear infinite; }
-        .wave-3-new { width: 126%; height: 126%; fill: #006DF9; opacity: 0.10; animation: rotCounter 30s linear infinite; }
+        /* --- ФОНОВЫЕ ОРГАНИЧЕСКИЕ СЛОИ (УВЕЛИЧЕННЫЕ) --- */
+        .wave-1 { width: 120%; height: 120%; fill: #006DF9; opacity: 0.65; animation: rotCounter 24s linear infinite; }
+        .wave-2-new { width: 140%; height: 140%; fill: #006DF9; opacity: 0.26; animation: rotClock 18s linear infinite; }
+        .wave-3-new { width: 160%; height: 160%; fill: #006DF9; opacity: 0.10; animation: rotCounter 30s linear infinite; }
 
         /* --- ИМПУЛЬСНЫЕ КОЛЬЦА --- */
         .pulse-svg path {
@@ -74,52 +74,36 @@
         .p-ring-1 { animation: sonar 3.5s cubic-bezier(0.1, 0.4, 0.2, 1) infinite; }
         .p-ring-2 { animation: sonar 3.5s cubic-bezier(0.1, 0.4, 0.2, 1) infinite; animation-delay: 1.75s; }
 
-        /* --- Тонкие статические оси --- */
-        .axes-svg path { fill: none; stroke: rgba(215, 235, 255, 0.12); stroke-width: 1; }
+        /* --- ГОЛОГРАММА ЗЕМЛИ --- */
+        .hologram-globe {
+            width: 58%;
+            height: 58%;
+            position: relative;
+            animation: floatGlobe 6s ease-in-out infinite;
+            filter: drop-shadow(0 0 12px rgba(0, 109, 249, 0.6));
+        }
 
-        /* --- ПРИГЛУШЕННЫЙ ЭЛЕГАНТНЫЙ ЛУЧ --- */
-        .radar-sweep-beam {
+        .globe-svg {
             width: 100%;
             height: 100%;
-            border-radius: 50%;
-            background: conic-gradient(
-                from 0deg, 
-                transparent 60%, 
-                rgba(0, 109, 249, 0.02) 80%, 
-                rgba(0, 109, 249, 0.16) 96%, 
-                rgba(215, 235, 255, 0.38) 100%
-            );
-            animation: sweep 4s linear infinite;
-            transform-origin: center center;
-        }
-
-        /* МАЛЕНЬКИЕ НЕ-СВЕТЯЩИЕСЯ ТОЧКИ С КИНЕМАТОГРАФИЧНЫМ ЗАТУХАНИЕМ */
-        .target-dot {
-            position: absolute;
-            width: 4px;
-            height: 4px;
-            background-color: #DCEBFC;
-            border: 1px solid #0056C6;
-            border-radius: 50%;
-            opacity: 0;
-            transform: scale(0.7);
-            /* Сверхплавное исчезновение и появление (1 секунда) */
-            transition: opacity 1.0s cubic-bezier(0.25, 1, 0.5, 1), transform 0.9s cubic-bezier(0.25, 1, 0.5, 1);
-            z-index: 15;
-        }
-        .target-dot.active {
-            opacity: 0.95;
-            transform: scale(1);
+            animation: pulseGlow 4s alternate infinite;
         }
 
         /* АНИМАЦИИ */
-        @keyframes sweep { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         @keyframes rotClock { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         @keyframes rotCounter { 0% { transform: rotate(360deg); } 100% { transform: rotate(0deg); } }
         @keyframes sonar {
             0% { transform: scale(0); opacity: 0.6; }
             70% { opacity: 0.2; }
-            100% { transform: scale(1.05); opacity: 0; }
+            100% { transform: scale(1.15); opacity: 0; }
+        }
+        @keyframes floatGlobe {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-8px) scale(1.02); }
+        }
+        @keyframes pulseGlow {
+            0% { filter: brightness(1); }
+            100% { filter: brightness(1.25) drop-shadow(0 0 8px rgba(215, 235, 255, 0.4)); }
         }
     </style>
 </head>
@@ -136,6 +120,7 @@
         
         <div class="radar-box" id="radarZone">
             
+            <!-- Фоновые волны (увеличены) -->
             <div class="layer-center z-1">
                 <svg class="wave-3-new" viewBox="0 0 200 200"><path d="M 100, 2 C 140, 10 180, 25 198, 90 C 215, 155 150, 195 100, 198 C 50, 201 -5, 150 2, 90 C 10, 30 60, -5 100, 2 Z" /></svg>
             </div>
@@ -148,6 +133,7 @@
                 <svg class="wave-1" viewBox="0 0 200 200"><path d="M 100, 5 C 150, 7 193, 50 195, 100 C 197, 150 150, 193 100, 195 C 50, 197 7, 150 5, 100 C 3, 50 50, 3 100, 5 Z" /></svg>
             </div>
 
+            <!-- Импульсные кольца -->
             <div class="layer-center z-4 pointer-events-none">
                 <svg class="pulse-svg w-full h-full" viewBox="0 0 200 200">
                     <path class="p-ring-1" d="M 100, 5 C 150, 7 193, 50 195, 100 C 197, 150 150, 193 100, 195 C 50, 197 7, 150 5, 100 C 3, 50 50, 3 100, 5 Z" />
@@ -155,30 +141,62 @@
                 </svg>
             </div>
 
-            <div class="layer-center z-5 pointer-events-none">
-                <svg class="axes-svg w-full h-full" viewBox="0 0 200 200">
-                    <path d="M 100, 12 Q 99, 70 100.5, 100 T 100, 188" />
-                    <path d="M 12, 100 Q 70, 100.5 100, 99.5 T 188, 100" />
-                </svg>
-            </div>
-
+            <!-- ЦЕНТРАЛЬНАЯ ГОЛОГРАММА -->
             <div class="layer-center z-10 pointer-events-none">
-                <div class="radar-sweep-beam" id="beamElement"></div>
-            </div>
+                <div class="hologram-globe">
+                    <svg class="globe-svg" viewBox="0 0 200 200">
+                        <defs>
+                            <!-- Свечение сферы -->
+                            <radialGradient id="sphereGrad" cx="50%" cy="50%" r="50%">
+                                <stop offset="0%" stop-color="#006DF9" stop-opacity="0.0"/>
+                                <stop offset="65%" stop-color="#006DF9" stop-opacity="0.15"/>
+                                <stop offset="90%" stop-color="#006DF9" stop-opacity="0.4"/>
+                                <stop offset="100%" stop-color="#DCEBFC" stop-opacity="0.7"/>
+                            </radialGradient>
+                            <clipPath id="globeClip">
+                                <circle cx="100" cy="100" r="98" />
+                            </clipPath>
+                        </defs>
+                        
+                        <!-- Базовая сфера -->
+                        <circle cx="100" cy="100" r="98" fill="url(#sphereGrad)" stroke="#006DF9" stroke-width="1.5" opacity="0.9"/>
+                        
+                        <!-- Сетка (Параллели) -->
+                        <ellipse cx="100" cy="100" rx="98" ry="25" fill="none" stroke="#006DF9" stroke-width="0.75" opacity="0.35" />
+                        <ellipse cx="100" cy="100" rx="98" ry="55" fill="none" stroke="#006DF9" stroke-width="0.75" opacity="0.35" />
+                        <ellipse cx="100" cy="100" rx="98" ry="80" fill="none" stroke="#006DF9" stroke-width="0.75" opacity="0.35" />
+                        
+                        <!-- Сетка (Меридианы) -->
+                        <ellipse cx="100" cy="100" rx="25" ry="98" fill="none" stroke="#006DF9" stroke-width="0.75" opacity="0.35" />
+                        <ellipse cx="100" cy="100" rx="55" ry="98" fill="none" stroke="#006DF9" stroke-width="0.75" opacity="0.35" />
+                        <ellipse cx="100" cy="100" rx="80" ry="98" fill="none" stroke="#006DF9" stroke-width="0.75" opacity="0.35" />
 
-            <div data-quad="1-3" class="target-dot" style="top: 22%; left: 64%;"></div>
-            <div data-quad="1-3" class="target-dot" style="top: 36%; left: 74%;"></div>
-            <div data-quad="1-3" class="target-dot" style="top: 66%; left: 26%;"></div>
-            <div data-quad="1-3" class="target-dot" style="top: 76%; left: 38%;"></div>
-            
-            <div data-quad="2-4" class="target-dot" style="top: 74%; left: 68%;"></div>
-            <div data-quad="2-4" class="target-dot" style="top: 62%; left: 78%;"></div>
-            <div data-quad="2-4" class="target-dot" style="top: 28%; left: 26%;"></div>
-            <div data-quad="2-4" class="target-dot" style="top: 20%; left: 44%;"></div>
+                        <!-- Стилизованные материки -->
+                        <g clip-path="url(#globeClip)" fill="#DCEBFC" opacity="0.85">
+                            <!-- Северная Америка -->
+                            <path d="M35,35 C25,50 35,65 50,60 C65,55 75,40 65,25 C55,10 45,20 35,35 Z" />
+                            <!-- Южная Америка -->
+                            <path d="M55,75 C45,95 55,130 65,150 C75,130 85,95 75,75 C65,55 65,55 55,75 Z" />
+                            <!-- Евразия -->
+                            <path d="M90,30 C75,45 85,75 110,70 C135,65 175,55 160,35 C145,15 105,15 90,30 Z" />
+                            <!-- Африка -->
+                            <path d="M95,75 C85,95 90,130 105,125 C120,120 135,95 125,75 C115,55 105,55 95,75 Z" />
+                            <!-- Австралия -->
+                            <path d="M140,110 C130,120 135,140 150,135 C165,130 170,115 160,105 C150,95 150,100 140,110 Z" />
+                            <!-- Мелкие острова -->
+                            <circle cx="140" cy="85" r="4" />
+                            <circle cx="170" cy="95" r="3" />
+                            <circle cx="80" cy="140" r="2" />
+                            <circle cx="45" cy="110" r="2.5" />
+                        </g>
+                    </svg>
+                </div>
+            </div>
 
         </div>
 
-        <div class="absolute bottom-[15px] left-[15px] right-[15px] h-[275px] bg-[#1C1C1E] rounded-[28px] border-none p-4 flex flex-col justify-between z-20 shadow-2xl overflow-hidden select-none">
+        <!-- НИЖНЯЯ ПАНЕЛЬ (Скругление увеличено до 36px) -->
+        <div class="absolute bottom-[15px] left-[15px] right-[15px] h-[275px] bg-[#1C1C1E] rounded-[36px] border-none p-4 flex flex-col justify-between z-20 shadow-2xl overflow-hidden select-none">
             
             <div class="w-full bg-white/[0.04] rounded-full p-1 flex relative items-center h-11">
                 <div id="chooser-bg" class="absolute inset-y-1 left-1 w-[calc(50%-4px)] bg-white/[0.09] backdrop-blur-xl rounded-full z-0 transition-transform duration-300 ease-[cubic-bezier(0.25,1,0.5,1)]"></div>
@@ -217,7 +235,7 @@
             tg.setBackgroundColor('#000000');
         }
 
-        // Логика кастомного Choose-bar
+        // Логика кастомного переключателя вкладок
         function switchTab(tab, btn) {
             if (tg?.HapticFeedback) tg.HapticFeedback.impactOccurred("light");
             
@@ -240,41 +258,6 @@
                 bg.style.transform = `translateX(${offset}px)`;
             }
         }
-
-        // Селекторы для поочередных групп точек
-        const group13 = document.querySelectorAll('[data-quad="1-3"]');
-        const group24 = document.querySelectorAll('[data-quad="2-4"]');
-
-        const animationDuration = 4000; // 4 секунды круг
-        const startTime = performance.now();
-
-        function radarScannerLoop(timestamp) {
-            const elapsed = (timestamp - startTime) % animationDuration;
-            const angle = (elapsed / animationDuration) * 360;
-
-            // Логика: делим круг на 2 основные фазы прохода осей радара
-            // Фаза А: Луч идет по 1-й и 3-й четвертям (0-90 град и 180-270 град)
-            // Фаза Б: Луч идет по 2-й и 4-й четвертям (90-180 град и 270-360 град)
-            
-            const isPhase13 = (angle >= 0 && angle < 90) || (angle >= 180 && angle < 270);
-
-            if (isPhase13) {
-                // Плавно зажигаем 1-3 четверти
-                group13.forEach(dot => dot.classList.add('active'));
-                // Плавно растворяем в темноте 2-4 четверти
-                group24.forEach(dot => dot.classList.remove('active'));
-            } else {
-                // Плавно зажигаем 2-4 четверти
-                group24.forEach(dot => dot.classList.add('active'));
-                // Плавно растворяем в темноте 1-3 четверти
-                group13.forEach(dot => dot.classList.remove('active'));
-            }
-
-            requestAnimationFrame(radarScannerLoop);
-        }
-
-        // Плавный запуск сканирования
-        requestAnimationFrame(radarScannerLoop);
     </script>
 </body>
 </html>
